@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProxyPolitics - NPC委任型内政ゲーム</title>
+    <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏛️ ProxyPolitics</h1>
+            <p class="subtitle">各分野をNPCに委任して国を発展させよう</p>
+        </header>
+
+        <div class="game-info">
+            <div class="turn-info">
+                <h2>ターン <span id="current-turn">1</span></h2>
+                <button id="next-turn-btn" class="btn btn-primary">次のターンへ</button>
+                <button id="reset-btn" class="btn btn-secondary">リセット</button>
+            </div>
+
+            <div class="resources">
+                <h3>資源</h3>
+                <div class="resource-grid">
+                    <div class="resource-item">
+                        <span class="resource-label">💰 資金:</span>
+                        <span id="resource-gold" class="resource-value">1000</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">👥 人口:</span>
+                        <span id="resource-population" class="resource-value">10000</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">⚔️ 軍事力:</span>
+                        <span id="resource-military" class="resource-value">500</span>
+                    </div>
+                    <div class="resource-item">
+                        <span class="resource-label">🤝 外交影響力:</span>
+                        <span id="resource-diplomacy" class="resource-value">50</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="sectors-panel">
+                <h2>分野管理</h2>
+
+                <!-- 経済 -->
+                <div class="sector-card" data-sector="economy">
+                    <div class="sector-header">
+                        <h3>💰 経済</h3>
+                        <span class="sector-level">Lv.<span id="economy-level">1</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="economy-progress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="delegation-info">
+                        <span>委任先: <span id="economy-delegate" class="delegate-name">なし</span></span>
+                        <button class="btn btn-small" onclick="showDelegationModal('economy')">変更</button>
+                    </div>
+                    <div class="sector-commands" id="economy-commands"></div>
+                </div>
+
+                <!-- 外交 -->
+                <div class="sector-card" data-sector="diplomacy">
+                    <div class="sector-header">
+                        <h3>🤝 外交</h3>
+                        <span class="sector-level">Lv.<span id="diplomacy-level">1</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="diplomacy-progress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="delegation-info">
+                        <span>委任先: <span id="diplomacy-delegate" class="delegate-name">なし</span></span>
+                        <button class="btn btn-small" onclick="showDelegationModal('diplomacy')">変更</button>
+                    </div>
+                    <div class="sector-commands" id="diplomacy-commands"></div>
+                </div>
+
+                <!-- 軍事 -->
+                <div class="sector-card" data-sector="military">
+                    <div class="sector-header">
+                        <h3>⚔️ 軍事</h3>
+                        <span class="sector-level">Lv.<span id="military-level">1</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="military-progress" class="progress-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="delegation-info">
+                        <span>委任先: <span id="military-delegate" class="delegate-name">なし</span></span>
+                        <button class="btn btn-small" onclick="showDelegationModal('military')">変更</button>
+                    </div>
+                    <div class="sector-commands" id="military-commands"></div>
+                </div>
+            </div>
+
+            <div class="side-panel">
+                <div class="event-log">
+                    <h3>イベントログ</h3>
+                    <div id="event-list" class="event-list"></div>
+                </div>
+
+                <div class="npc-list">
+                    <h3>NPCリスト</h3>
+                    <div id="npc-list-container"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 委任モーダル -->
+    <div id="delegation-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeDelegationModal()">&times;</span>
+            <h2>NPCに委任</h2>
+            <p id="modal-sector-name"></p>
+            <div id="npc-selection" class="npc-selection"></div>
+            <button class="btn btn-secondary" onclick="delegateToNPC(null)">委任解除</button>
+        </div>
+    </div>
+
+    <script src="static/js/app.js"></script>
+</body>
+</html>
