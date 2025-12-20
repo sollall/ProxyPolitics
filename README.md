@@ -34,6 +34,8 @@ pip install -r backend/requirements.txt
 
 ### 起動方法
 
+#### 通常の起動方法
+
 1. バックエンドサーバーを起動
 ```bash
 cd backend
@@ -44,6 +46,48 @@ python app.py
 ```
 http://localhost:5000
 ```
+
+#### 仮想環境（venv）を使用する場合（推奨）
+
+**Linux/macOS:**
+```bash
+# 初回のみ: 仮想環境を作成
+python -m venv venv
+
+# 仮想環境を有効化
+source venv/bin/activate
+
+# 依存パッケージをインストール
+pip install -r backend/requirements.txt
+
+# サーバーを起動
+cd backend
+python app.py
+
+# 終了時は仮想環境を無効化
+deactivate
+```
+
+**Windows:**
+```bash
+# 初回のみ: 仮想環境を作成
+python -m venv venv
+
+# 仮想環境を有効化
+venv\Scripts\activate
+
+# 依存パッケージをインストール
+pip install -r backend\requirements.txt
+
+# サーバーを起動
+cd backend
+python app.py
+
+# 終了時は仮想環境を無効化
+deactivate
+```
+
+**Note:** 2回目以降は仮想環境の有効化から始めればOKです。仮想環境が有効な状態では、コマンドプロンプトの先頭に `(venv)` と表示されます。
 
 ## ゲームの遊び方
 
