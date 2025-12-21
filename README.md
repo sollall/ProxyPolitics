@@ -176,8 +176,49 @@ ProxyPolitics/
 │       │   └── style.css
 │       └── js/
 │           └── app.js
+├── tests/
+│   ├── test_game_logic.py      # ゲームロジックのテスト
+│   ├── test_npc_recruitment.py # NPC採用のテスト
+│   └── test_turn_based_system.py # ターンベースシステムのテスト
+├── .github/
+│   └── workflows/
+│       └── tests.yml           # CI/CDワークフロー
 └── README.md
 ```
+
+## テスト
+
+プロジェクトはpytestを使用してテストされています。
+
+### テストの実行
+
+```bash
+# 依存パッケージをインストール（pytest含む）
+pip install -r backend/requirements.txt
+
+# 全テストを実行
+pytest
+
+# カバレッジ付きで実行
+pytest --cov=backend --cov-report=term
+
+# 詳細な出力で実行
+pytest -v
+```
+
+### テストスイート
+
+- **test_game_logic.py**: ゲームの基本ロジック、委任、コマンド実行
+- **test_npc_recruitment.py**: NPC生成と採用機能
+- **test_turn_based_system.py**: ターンベース選択システム
+
+### CI/CD
+
+プルリクエストとmainブランチへのプッシュ時に、GitHub Actionsで自動的にテストが実行されます。
+
+- Python 3.9, 3.10, 3.11でテスト
+- カバレッジレポートを生成
+- テスト失敗時はマージをブロック
 
 ## API エンドポイント
 
