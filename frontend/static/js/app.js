@@ -6,6 +6,11 @@ let gameState = null;
 let allNPCs = [];
 let allCommands = [];
 let currentDelegationSector = null;
+let selectedCommands = {
+    economy: null,
+    diplomacy: null,
+    military: null
+}; // 各分野で選択されたコマンド
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
@@ -127,12 +132,26 @@ function renderCommands() {
         const container = document.getElementById(`${sector}-commands`);
         container.innerHTML = '';
 
+        // 委任されているかチェック
+        const isDelegated = gameState && gameState.sectors[sector].delegated_to !== null;
+
+        if (isDelegated) {
+            // 委任されている場合はメッセージを表示
+            const message = document.createElement('div');
+            message.className = 'delegated-message';
+            message.textContent = '👤 NPCに委任中 - 自動で行動します';
+            container.appendChild(message);
+            return;
+        }
+
         const sectorCommands = allCommands.filter(cmd => cmd.sector === sector);
 
         sectorCommands.forEach(cmd => {
             const btn = document.createElement('button');
             btn.className = 'command-btn';
-            btn.onclick = () => executeCommand(cmd.id);
+            btn.dataset.commandId = cmd.id;
+            btn.dataset.sector = sector;
+            btn.onclick = () => selectCommand(sector, cmd.id);
 
             const costText = Object.entries(cmd.cost)
                 .map(([res, val]) => `${getResourceName(res)}: ${val}`)
@@ -160,11 +179,24 @@ function renderCommands() {
 function updateCommandButtons() {
     if (!gameState) return;
 
-    allCommands.forEach(cmd => {
-        const btns = document.querySelectorAll(`button[onclick*="${cmd.id}"]`);
-        btns.forEach(btn => {
-            let canExecute = true;
+    const sectors = ['economy', 'diplomacy', 'military'];
 
+    sectors.forEach(sector => {
+        const sectorCommands = allCommands.filter(cmd => cmd.sector === sector);
+
+        sectorCommands.forEach(cmd => {
+            const btn = document.querySelector(`button[data-command-id="${cmd.id}"]`);
+            if (!btn) return;
+
+            // 選択状態を反映
+            if (selectedCommands[sector] === cmd.id) {
+                btn.classList.add('selected');
+            } else {
+                btn.classList.remove('selected');
+            }
+
+            // リソース確認
+            let canExecute = true;
             for (const [resource, cost] of Object.entries(cmd.cost)) {
                 if ((gameState.resources[resource] || 0) < cost) {
                     canExecute = false;
@@ -181,27 +213,22 @@ function updateCommandButtons() {
     });
 }
 
-// コマンドを実行
-async function executeCommand(commandId) {
-    try {
-        const response = await fetch(`${API_BASE}/execute`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ command_id: commandId })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            gameState = result.state;
-            updateUI();
-            updateCommandButtons();
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        console.error('コマンド実行エラー:', error);
+// コマンドを選択
+function selectCommand(sector, commandId) {
+    // 委任されている場合は選択不可
+    if (gameState && gameState.sectors[sector].delegated_to !== null) {
+        alert('この分野はNPCに委任されています');
+        return;
     }
+
+    // 同じコマンドをクリックした場合は選択解除
+    if (selectedCommands[sector] === commandId) {
+        selectedCommands[sector] = null;
+    } else {
+        selectedCommands[sector] = commandId;
+    }
+
+    updateCommandButtons();
 }
 
 // 委任モーダルを表示
@@ -268,7 +295,10 @@ async function delegateToNPC(npcId) {
 
         if (result.success) {
             gameState = result.state;
+            // 委任した分野の選択をクリア
+            selectedCommands[currentDelegationSector] = null;
             updateUI();
+            renderCommands();
             closeDelegationModal();
         } else {
             alert(result.message);
@@ -281,23 +311,47 @@ async function delegateToNPC(npcId) {
 // 次のターン
 async function nextTurn() {
     try {
+        // 選択されたコマンドを収集
+        const playerCommands = {};
+        for (const [sector, commandId] of Object.entries(selectedCommands)) {
+            if (commandId !== null && gameState.sectors[sector].delegated_to === null) {
+                playerCommands[sector] = commandId;
+            }
+        }
+
         const response = await fetch(`${API_BASE}/next_turn`, {
-            method: 'POST'
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ player_commands: playerCommands })
         });
 
         const result = await response.json();
 
         if (result.success) {
             gameState = result.state;
-            updateUI();
-            updateCommandButtons();
 
-            if (result.npc_actions.length > 0) {
+            // 選択をクリア
+            selectedCommands = {
+                economy: null,
+                diplomacy: null,
+                military: null
+            };
+
+            updateUI();
+            renderCommands();
+
+            if (result.npc_actions && result.npc_actions.length > 0) {
                 console.log('NPC実行:', result.npc_actions);
             }
+            if (result.player_actions && result.player_actions.length > 0) {
+                console.log('プレイヤー実行:', result.player_actions);
+            }
+        } else {
+            alert(result.message || 'ターン進行に失敗しました');
         }
     } catch (error) {
         console.error('ターン進行エラー:', error);
+        alert('ターン進行中にエラーが発生しました');
     }
 }
 

@@ -89,7 +89,24 @@ def execute_command():
 
 @app.route('/api/next_turn', methods=['POST'])
 def next_turn():
-    """次のターンへ進む（NPCが委任された分野で自動実行）"""
+    """次のターンへ進む（プレイヤーとNPCのコマンド実行）"""
+    data = request.json or {}
+    player_commands = data.get('player_commands', {})  # {sector: command_id}
+
+    player_actions = []
+    npc_actions = []
+
+    # プレイヤーのコマンドを実行（委任されていない分野のみ）
+    for sector, command_id in player_commands.items():
+        if sector in game_state.sectors:
+            # 委任されていないことを確認
+            if game_state.sectors[sector].get('delegated_to') is None:
+                success, message = command_processor.execute_command(game_state, command_id)
+                if success:
+                    log_message = f"[プレイヤー] {sector}分野で{message}"
+                    player_actions.append(log_message)
+                    game_state.add_event(log_message)
+
     # NPCが委任された分野で自動実行
     npc_actions = npc_ai.process_delegated_sectors(game_state)
 
@@ -104,6 +121,7 @@ def next_turn():
 
     return jsonify({
         "success": True,
+        "player_actions": player_actions,
         "npc_actions": npc_actions,
         "state": game_state.to_dict()
     })
