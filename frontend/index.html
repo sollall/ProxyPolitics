@@ -103,7 +103,10 @@
                 </div>
 
                 <div class="npc-list">
-                    <h3>NPCリスト</h3>
+                    <div class="npc-list-header">
+                        <h3>NPCリスト</h3>
+                        <button class="btn btn-small btn-recruit" onclick="showRecruitModal()">➕ 採用</button>
+                    </div>
                     <div id="npc-list-container"></div>
                 </div>
             </div>
@@ -118,6 +121,30 @@
             <p id="modal-sector-name"></p>
             <div id="npc-selection" class="npc-selection"></div>
             <button class="btn btn-secondary" onclick="delegateToNPC(null)">委任解除</button>
+        </div>
+    </div>
+
+    <!-- NPC採用モーダル -->
+    <div id="recruit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRecruitModal()">&times;</span>
+            <h2>👔 NPC採用</h2>
+            <p class="recruit-info">新しいNPCを採用します（コスト: 💰500）</p>
+            <div class="recruit-options">
+                <h3>専門分野を選択:</h3>
+                <button class="btn recruit-option-btn" onclick="recruitNPC('economy')">
+                    💰 経済専門
+                </button>
+                <button class="btn recruit-option-btn" onclick="recruitNPC('diplomacy')">
+                    🤝 外交専門
+                </button>
+                <button class="btn recruit-option-btn" onclick="recruitNPC('military')">
+                    ⚔️ 軍事専門
+                </button>
+                <button class="btn recruit-option-btn" onclick="recruitNPC(null)">
+                    🎲 ランダム
+                </button>
+            </div>
         </div>
     </div>
 

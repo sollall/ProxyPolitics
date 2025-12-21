@@ -345,6 +345,61 @@ header h1 {
     transform: translateX(5px);
 }
 
+/* NPC採用UI */
+.npc-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.npc-list-header h3 {
+    margin: 0;
+}
+
+.btn-recruit {
+    background: #28a745;
+    color: white;
+    border: none;
+}
+
+.btn-recruit:hover {
+    background: #218838;
+}
+
+.recruit-info {
+    font-size: 1.1em;
+    color: #555;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.recruit-options {
+    margin: 20px 0;
+}
+
+.recruit-options h3 {
+    color: #333;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.recruit-option-btn {
+    width: 100%;
+    margin: 10px 0;
+    padding: 15px;
+    font-size: 1.1em;
+    background: #f8f9fa;
+    border: 2px solid #667eea;
+    color: #333;
+}
+
+.recruit-option-btn:hover {
+    background: #667eea;
+    color: white;
+    transform: scale(1.02);
+}
+
 @media (max-width: 768px) {
     .main-content {
         grid-template-columns: 1fr;

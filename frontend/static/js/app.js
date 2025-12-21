@@ -360,3 +360,43 @@ function getPersonalityName(personality) {
     };
     return names[personality] || personality;
 }
+
+// NPC採用モーダルを表示
+function showRecruitModal() {
+    const modal = document.getElementById('recruit-modal');
+    modal.style.display = 'block';
+}
+
+// NPC採用モーダルを閉じる
+function closeRecruitModal() {
+    document.getElementById('recruit-modal').style.display = 'none';
+}
+
+// NPCを採用
+async function recruitNPC(specialty) {
+    try {
+        const response = await fetch(`${API_BASE}/recruit_npc`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ specialty: specialty })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            gameState = result.state;
+            allNPCs = result.all_npcs;
+            updateUI();
+            updateCommandButtons();
+            renderNPCList();
+            closeRecruitModal();
+
+            alert(`✅ ${result.message}\n\n専門: ${getSectorName(result.npc.specialty)}\n性格: ${Object.entries(result.npc.personality).map(([k, v]) => `${getPersonalityName(k)}: ${v}`).join(', ')}`);
+        } else {
+            alert(`❌ ${result.message}`);
+        }
+    } catch (error) {
+        console.error('NPC採用エラー:', error);
+        alert('NPC採用中にエラーが発生しました');
+    }
+}

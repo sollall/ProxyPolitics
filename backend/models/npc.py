@@ -39,7 +39,18 @@ class NPCManager:
 
     def __init__(self):
         self.npcs: Dict[str, NPC] = {}
+        self.npc_counter = 5  # デフォルトNPCが5人いるので6から開始
         self._initialize_default_npcs()
+
+        # NPC生成用の名前リスト
+        self.first_names = [
+            "山田", "中村", "小林", "加藤", "吉田", "山本", "佐々木", "渡辺",
+            "松本", "井上", "木村", "林", "清水", "山崎", "森", "阿部",
+            "池田", "橋本", "山下", "石川", "中島", "前田", "藤田", "後藤"
+        ]
+        self.last_names_economy = ["商人", "財務官", "銀行家", "商会長", "貿易商", "会計士", "豪商"]
+        self.last_names_diplomacy = ["外交官", "使節", "交渉官", "大使", "参事官", "書記官", "顧問"]
+        self.last_names_military = ["将軍", "参謀", "司令官", "隊長", "武官", "戦術家", "指揮官"]
 
     def _initialize_default_npcs(self):
         """デフォルトのNPCを初期化"""
@@ -71,3 +82,73 @@ class NPCManager:
         """専門分野でフィルタリングしたNPCリストを取得"""
         return [npc.to_dict() for npc in self.npcs.values()
                 if npc.specialty == specialty]
+
+    def generate_random_npc(self, specialty: str = None) -> NPC:
+        """
+        ランダムなNPCを生成
+
+        Args:
+            specialty: 専門分野を指定（Noneの場合はランダム）
+
+        Returns:
+            生成されたNPC
+        """
+        self.npc_counter += 1
+        npc_id = f"npc_{self.npc_counter:03d}"
+
+        # 専門分野を決定
+        if specialty is None:
+            specialty = random.choice(["economy", "diplomacy", "military"])
+
+        # 名前を生成
+        first_name = random.choice(self.first_names)
+        if specialty == "economy":
+            last_name = random.choice(self.last_names_economy)
+        elif specialty == "diplomacy":
+            last_name = random.choice(self.last_names_diplomacy)
+        else:  # military
+            last_name = random.choice(self.last_names_military)
+
+        name = f"{first_name}{last_name}"
+
+        # 性格を生成（3つの性格タイプからランダムに主要性格を決定）
+        personality_type = random.choice(["aggressive", "cautious", "balanced"])
+
+        if personality_type == "aggressive":
+            personality = {
+                "aggressive": random.randint(7, 10),
+                "cautious": random.randint(1, 4),
+                "balanced": random.randint(3, 6)
+            }
+        elif personality_type == "cautious":
+            personality = {
+                "aggressive": random.randint(1, 4),
+                "cautious": random.randint(7, 10),
+                "balanced": random.randint(3, 6)
+            }
+        else:  # balanced
+            personality = {
+                "aggressive": random.randint(3, 6),
+                "cautious": random.randint(3, 6),
+                "balanced": random.randint(7, 10)
+            }
+
+        return NPC(npc_id, name, specialty, personality)
+
+    def recruit_npc(self, specialty: str = None) -> NPC:
+        """
+        新しいNPCを採用してプールに追加
+
+        Args:
+            specialty: 専門分野を指定（Noneの場合はランダム）
+
+        Returns:
+            採用されたNPC
+        """
+        new_npc = self.generate_random_npc(specialty)
+        self.npcs[new_npc.id] = new_npc
+        return new_npc
+
+    def get_npc_count(self) -> int:
+        """現在のNPC数を取得"""
+        return len(self.npcs)

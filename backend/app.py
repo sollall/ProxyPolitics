@@ -109,11 +109,45 @@ def next_turn():
     })
 
 
+@app.route('/api/recruit_npc', methods=['POST'])
+def recruit_npc():
+    """新しいNPCを採用"""
+    data = request.json
+    specialty = data.get('specialty')  # Noneの場合はランダム
+
+    # 採用コスト
+    recruitment_cost = 500
+
+    # 資金確認
+    if game_state.resources.get('gold', 0) < recruitment_cost:
+        return jsonify({
+            "success": False,
+            "message": f"資金不足です（必要: {recruitment_cost}、所持: {game_state.resources['gold']}）"
+        }), 400
+
+    # 資金を支払い
+    game_state.resources['gold'] -= recruitment_cost
+
+    # NPCを採用
+    new_npc = npc_manager.recruit_npc(specialty)
+
+    game_state.add_event(f"新しいNPC「{new_npc.name}」を採用しました（コスト: {recruitment_cost}）")
+
+    return jsonify({
+        "success": True,
+        "message": f"NPCを採用しました: {new_npc.name}",
+        "npc": new_npc.to_dict(),
+        "state": game_state.to_dict(),
+        "all_npcs": npc_manager.get_all_npcs()
+    })
+
+
 @app.route('/api/reset', methods=['POST'])
 def reset_game():
     """ゲームをリセット"""
-    global game_state
+    global game_state, npc_manager
     game_state = GameState()
+    npc_manager = NPCManager()
 
     return jsonify({
         "success": True,
