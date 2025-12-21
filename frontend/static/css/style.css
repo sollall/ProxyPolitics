@@ -172,16 +172,39 @@ header h1 {
     text-align: left;
 }
 
-.command-btn:hover:not(.disabled) {
-    background: #667eea;
-    color: white;
+.command-btn:hover:not(.disabled):not(.selected) {
+    background: #e8ebf9;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.command-btn.selected {
+    background: #667eea;
+    color: white;
+    border-color: #5568d3;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.3);
+}
+
+.command-btn.selected h4,
+.command-btn.selected .command-cost,
+.command-btn.selected .command-effect {
+    color: white;
 }
 
 .command-btn.disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.delegated-message {
+    background: #e8f5e9;
+    border: 2px solid #4caf50;
+    padding: 20px;
+    border-radius: 8px;
+    text-align: center;
+    color: #2e7d32;
+    font-weight: bold;
+    font-size: 1.1em;
 }
 
 .command-btn h4 {
