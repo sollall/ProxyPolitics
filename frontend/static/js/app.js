@@ -71,7 +71,7 @@ function updateUI() {
     if (!currentCity) return;
 
     // 資源（帝国リソース + 都市リソース）
-    document.getElementById('resource-gold').textContent = gameState.empire_resources.gold;
+    document.getElementById('resource-gold').textContent = gameState.resources.gold;
     document.getElementById('resource-population').textContent = currentCity.resources.population;
     document.getElementById('resource-military').textContent = currentCity.resources.military_power;
     document.getElementById('resource-diplomacy').textContent = currentCity.resources.diplomatic_influence;

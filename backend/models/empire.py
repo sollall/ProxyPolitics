@@ -1,34 +1,36 @@
 """
-ゲーム状態を管理するモデル（帝国レベル）
+帝国モデル - 帝国全体の状態を管理
 """
 from typing import Dict, Optional, List
-import json
 from models.city import City
+from models.npc import NPCManager
 
 
-class GameState:
-    """ゲーム全体の状態を管理（帝国レベル）"""
+class Empire:
+    """帝国全体を管理するクラス"""
 
     def __init__(self):
+        # ターンカウンター
         self.turn = 1
 
         # 帝国レベルのリソース（全都市で共有）
-        self.empire_resources = {
+        self.resources = {
             "gold": 1000,  # 資金は帝国全体で共有
         }
 
-        # 都市リスト
+        # 都市管理
         self.cities: Dict[str, City] = {}
         self._city_counter = 0
-
-        # デフォルトで首都を作成
-        self._create_default_city()
-
-        # 現在選択されている都市ID
         self.current_city_id = "city_001"
+
+        # NPC管理
+        self.npc_manager = NPCManager()
 
         # イベントログ
         self.event_log = []
+
+        # デフォルトで首都を作成
+        self._create_default_city()
 
     def _create_default_city(self):
         """デフォルトの首都を作成"""
@@ -86,26 +88,8 @@ class GameState:
         """辞書形式に変換"""
         return {
             "turn": self.turn,
-            "empire_resources": self.empire_resources,
+            "resources": self.resources,  # 帝国レベルのリソース
             "current_city_id": self.current_city_id,
             "cities": {city_id: city.to_dict() for city_id, city in self.cities.items()},
             "event_log": self.event_log[-10:]  # 最新10件のみ送信
         }
-
-    # 後方互換性のためのプロパティ（既存のコードが動作するように）
-    @property
-    def resources(self) -> Dict:
-        """現在の都市のリソース + 帝国リソース（後方互換性）"""
-        current_city = self.get_current_city()
-        if current_city:
-            combined = dict(self.empire_resources)
-            combined.update(current_city.resources)
-            return combined
-        return self.empire_resources
-
-    @property
-    def sectors(self) -> Dict:
-        """現在の都市の分野（後方互換性）"""
-        current_city = self.get_current_city()
-        return current_city.sectors if current_city else {}
-

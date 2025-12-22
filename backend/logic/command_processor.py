@@ -130,7 +130,7 @@ class CommandProcessor:
         for resource, cost in cmd.cost.items():
             if resource == "gold":
                 # 資金は帝国レベル
-                if game_state.empire_resources.get(resource, 0) < cost:
+                if game_state.resources.get(resource, 0) < cost:
                     return False, f"リソース不足: {resource}"
             else:
                 # その他は都市レベル
@@ -140,7 +140,7 @@ class CommandProcessor:
         # コスト支払い
         for resource, cost in cmd.cost.items():
             if resource == "gold":
-                game_state.empire_resources[resource] -= cost
+                game_state.resources[resource] -= cost
             else:
                 city.resources[resource] -= cost
 
@@ -157,7 +157,7 @@ class CommandProcessor:
                         f"[{city.name}] {cmd.sector}分野がレベル{city.sectors[cmd.sector]['level']}に上昇！"
                     )
             elif resource == "gold":
-                game_state.empire_resources[resource] = game_state.empire_resources.get(resource, 0) + gain
+                game_state.resources[resource] = game_state.resources.get(resource, 0) + gain
             else:
                 city.resources[resource] = city.resources.get(resource, 0) + gain
 
