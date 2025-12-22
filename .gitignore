@@ -38,3 +38,11 @@ Thumbs.db
 *.db
 *.sqlite
 saves/
+
+# Testing
+.coverage
+.coverage.*
+htmlcov/
+.pytest_cache/
+coverage.xml
+*.cover
