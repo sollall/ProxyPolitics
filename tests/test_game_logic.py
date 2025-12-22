@@ -44,22 +44,25 @@ class TestDelegation:
     def test_delegate_sector(self):
         """分野の委任"""
         game_state = GameState()
-        result = game_state.delegate_sector("economy", "npc_001")
+        city_id = game_state.current_city_id
+        result = game_state.delegate_sector(city_id, "economy", "npc_001")
         assert result is True
-        assert game_state.sectors["economy"]["delegated_to"] == "npc_001"
+        assert game_state.cities[city_id].sectors["economy"]["delegated_to"] == "npc_001"
 
     def test_undelegate_sector(self):
         """委任の解除"""
         game_state = GameState()
-        game_state.delegate_sector("economy", "npc_001")
-        result = game_state.delegate_sector("economy", None)
+        city_id = game_state.current_city_id
+        game_state.delegate_sector(city_id, "economy", "npc_001")
+        result = game_state.delegate_sector(city_id, "economy", None)
         assert result is True
-        assert game_state.sectors["economy"]["delegated_to"] is None
+        assert game_state.cities[city_id].sectors["economy"]["delegated_to"] is None
 
     def test_invalid_sector_delegation(self):
         """無効な分野への委任"""
         game_state = GameState()
-        result = game_state.delegate_sector("invalid", "npc_001")
+        city_id = game_state.current_city_id
+        result = game_state.delegate_sector(city_id, "invalid", "npc_001")
         assert result is False
 
 
@@ -84,7 +87,7 @@ class TestCommandExecution:
         command_processor = CommandProcessor()
 
         # 資金を0にする
-        game_state.resources['gold'] = 0
+        game_state.empire_resources['gold'] = 0
 
         success, message = command_processor.execute_command(game_state, "eco_invest")
         assert success is False
@@ -112,7 +115,8 @@ class TestNPCDecision:
         command_processor = CommandProcessor()
         npc_ai = NPCAI(npc_manager, command_processor)
 
-        game_state.delegate_sector("economy", "npc_001")
+        city_id = game_state.current_city_id
+        game_state.delegate_sector(city_id, "economy", "npc_001")
         executed = npc_ai.process_delegated_sectors(game_state)
 
         assert len(executed) > 0
@@ -137,15 +141,18 @@ class TestTurnProgression:
         command_processor = CommandProcessor()
         npc_ai = NPCAI(npc_manager, command_processor)
 
+        city_id = game_state.current_city_id
+        city = game_state.get_current_city()
+
         # プレイヤーが経済コマンド実行
         command_processor.execute_command(game_state, "eco_invest")
 
         # 外交をNPCに委任
-        game_state.delegate_sector("diplomacy", "npc_003")
+        game_state.delegate_sector(city_id, "diplomacy", "npc_003")
 
         # NPCが委任された分野で実行
         npc_actions = npc_ai.process_delegated_sectors(game_state)
 
         assert len(npc_actions) > 0
-        assert game_state.sectors["economy"]["progress"] > 0
-        assert game_state.sectors["diplomacy"]["progress"] > 0
+        assert city.sectors["economy"]["progress"] > 0
+        assert city.sectors["diplomacy"]["progress"] > 0

@@ -50,14 +50,71 @@ def get_commands():
     return jsonify(commands)
 
 
+@app.route('/api/cities', methods=['GET'])
+def get_cities():
+    """全都市リストを取得"""
+    cities = {city_id: city.to_dict() for city_id, city in game_state.cities.items()}
+    return jsonify({
+        "cities": cities,
+        "current_city_id": game_state.current_city_id
+    })
+
+
+@app.route('/api/cities/<city_id>/switch', methods=['POST'])
+def switch_city(city_id):
+    """都市を切り替え"""
+    success = game_state.set_current_city(city_id)
+
+    if success:
+        city = game_state.get_city(city_id)
+        return jsonify({
+            "success": True,
+            "message": f"{city.name}に切り替えました",
+            "current_city_id": game_state.current_city_id,
+            "state": game_state.to_dict()
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "message": "無効な都市IDです"
+        }), 400
+
+
+@app.route('/api/cities/add', methods=['POST'])
+def add_city():
+    """新しい都市を追加"""
+    data = request.json
+    name = data.get('name', '新しい都市')
+
+    # コスト（将来的には征服や建設のコストを設定）
+    cost = 2000
+
+    if game_state.empire_resources.get('gold', 0) < cost:
+        return jsonify({
+            "success": False,
+            "message": f"資金不足です（必要: {cost}、所持: {game_state.empire_resources['gold']}）"
+        }), 400
+
+    game_state.empire_resources['gold'] -= cost
+    new_city = game_state.add_city(name)
+
+    return jsonify({
+        "success": True,
+        "message": f"新しい都市「{name}」を獲得しました",
+        "city": new_city.to_dict(),
+        "state": game_state.to_dict()
+    })
+
+
 @app.route('/api/delegate', methods=['POST'])
 def delegate_sector():
     """分野にNPCを委任"""
     data = request.json
     sector = data.get('sector')
     npc_id = data.get('npc_id')  # Noneの場合は委任解除
+    city_id = data.get('city_id', game_state.current_city_id)  # デフォルトは現在の都市
 
-    success = game_state.delegate_sector(sector, npc_id)
+    success = game_state.delegate_sector(city_id, sector, npc_id)
 
     if success:
         return jsonify({

@@ -76,16 +76,16 @@ class TestNPCRecruitment:
         npc_manager = NPCManager()
 
         recruitment_cost = 500
-        initial_gold = game_state.resources['gold']
+        initial_gold = game_state.empire_resources['gold']
 
         # コスト確認と支払い
-        assert game_state.resources['gold'] >= recruitment_cost
-        game_state.resources['gold'] -= recruitment_cost
+        assert game_state.empire_resources['gold'] >= recruitment_cost
+        game_state.empire_resources['gold'] -= recruitment_cost
 
         # 採用
         new_npc = npc_manager.recruit_npc("economy")
 
-        assert game_state.resources['gold'] == initial_gold - recruitment_cost
+        assert game_state.empire_resources['gold'] == initial_gold - recruitment_cost
         assert new_npc is not None
 
     def test_multiple_recruitment(self):

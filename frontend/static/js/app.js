@@ -20,6 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('next-turn-btn').addEventListener('click', nextTurn);
     document.getElementById('reset-btn').addEventListener('click', resetGame);
+    document.getElementById('city-select').addEventListener('change', switchCity);
 });
 
 // ゲーム状態を読み込み
@@ -59,17 +60,24 @@ async function loadCommands() {
 function updateUI() {
     if (!gameState) return;
 
+    // 都市セレクターを更新
+    updateCitySelector();
+
     // ターン
     document.getElementById('current-turn').textContent = gameState.turn;
 
-    // 資源
-    document.getElementById('resource-gold').textContent = gameState.resources.gold;
-    document.getElementById('resource-population').textContent = gameState.resources.population;
-    document.getElementById('resource-military').textContent = gameState.resources.military_power;
-    document.getElementById('resource-diplomacy').textContent = gameState.resources.diplomatic_influence;
+    // 現在の都市を取得
+    const currentCity = gameState.cities[gameState.current_city_id];
+    if (!currentCity) return;
+
+    // 資源（帝国リソース + 都市リソース）
+    document.getElementById('resource-gold').textContent = gameState.empire_resources.gold;
+    document.getElementById('resource-population').textContent = currentCity.resources.population;
+    document.getElementById('resource-military').textContent = currentCity.resources.military_power;
+    document.getElementById('resource-diplomacy').textContent = currentCity.resources.diplomatic_influence;
 
     // 各分野
-    for (const [sector, data] of Object.entries(gameState.sectors)) {
+    for (const [sector, data] of Object.entries(currentCity.sectors)) {
         document.getElementById(`${sector}-level`).textContent = data.level;
         document.getElementById(`${sector}-progress`).style.width = `${data.progress}%`;
 
@@ -81,6 +89,30 @@ function updateUI() {
 
     // イベントログ
     renderEventLog();
+
+    // コマンドを再レンダリング（委任状態が変わった可能性があるため）
+    renderCommands();
+}
+
+// 都市セレクターを更新
+function updateCitySelector() {
+    const selector = document.getElementById('city-select');
+    selector.innerHTML = '';
+
+    for (const [cityId, city] of Object.entries(gameState.cities)) {
+        const option = document.createElement('option');
+        option.value = cityId;
+        option.textContent = city.name;
+        if (cityId === gameState.current_city_id) {
+            option.selected = true;
+        }
+        selector.appendChild(option);
+    }
+
+    // 都市情報テキストを更新
+    const cityInfoText = document.getElementById('city-info');
+    const cityCount = Object.keys(gameState.cities).length;
+    cityInfoText.textContent = `全${cityCount}都市を領有中`;
 }
 
 // イベントログをレンダリング
@@ -128,12 +160,17 @@ function renderNPCList() {
 function renderCommands() {
     const sectors = ['economy', 'diplomacy', 'military'];
 
+    if (!gameState || !gameState.cities || !gameState.current_city_id) return;
+
+    const currentCity = gameState.cities[gameState.current_city_id];
+    if (!currentCity) return;
+
     sectors.forEach(sector => {
         const container = document.getElementById(`${sector}-commands`);
         container.innerHTML = '';
 
         // 委任されているかチェック
-        const isDelegated = gameState && gameState.sectors[sector].delegated_to !== null;
+        const isDelegated = currentCity.sectors[sector].delegated_to !== null;
 
         if (isDelegated) {
             // 委任されている場合はメッセージを表示
@@ -215,8 +252,13 @@ function updateCommandButtons() {
 
 // コマンドを選択
 function selectCommand(sector, commandId) {
+    if (!gameState || !gameState.cities || !gameState.current_city_id) return;
+
+    const currentCity = gameState.cities[gameState.current_city_id];
+    if (!currentCity) return;
+
     // 委任されている場合は選択不可
-    if (gameState && gameState.sectors[sector].delegated_to !== null) {
+    if (currentCity.sectors[sector].delegated_to !== null) {
         alert('この分野はNPCに委任されています');
         return;
     }
@@ -287,7 +329,8 @@ async function delegateToNPC(npcId) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 sector: currentDelegationSector,
-                npc_id: npcId
+                npc_id: npcId,
+                city_id: gameState.current_city_id
             })
         });
 
@@ -413,6 +456,73 @@ function getPersonalityName(personality) {
         balanced: 'バランス'
     };
     return names[personality] || personality;
+}
+
+// 都市を切り替え
+async function switchCity() {
+    const cityId = document.getElementById('city-select').value;
+
+    try {
+        const response = await fetch(`${API_BASE}/cities/${cityId}/switch`, {
+            method: 'POST'
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            gameState = result.state;
+            // 選択をクリア（都市ごとに異なるため）
+            selectedCommands = {
+                economy: null,
+                diplomacy: null,
+                military: null
+            };
+            updateUI();
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        console.error('都市切り替えエラー:', error);
+        alert('都市の切り替えに失敗しました');
+    }
+}
+
+// 都市追加モーダルを表示
+function showAddCityModal() {
+    document.getElementById('add-city-modal').style.display = 'block';
+    document.getElementById('new-city-name').value = '';
+}
+
+// 都市追加モーダルを閉じる
+function closeAddCityModal() {
+    document.getElementById('add-city-modal').style.display = 'none';
+}
+
+// 新しい都市を追加
+async function addCity() {
+    const name = document.getElementById('new-city-name').value.trim() || '新しい都市';
+
+    try {
+        const response = await fetch(`${API_BASE}/cities/add`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name: name })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            gameState = result.state;
+            updateUI();
+            closeAddCityModal();
+            alert(`✅ ${result.message}`);
+        } else {
+            alert(`❌ ${result.message}`);
+        }
+    } catch (error) {
+        console.error('都市追加エラー:', error);
+        alert('都市追加中にエラーが発生しました');
+    }
 }
 
 // NPC採用モーダルを表示

@@ -13,6 +13,17 @@
             <p class="subtitle">各分野をNPCに委任して国を発展させよう</p>
         </header>
 
+        <div class="city-selector">
+            <div class="city-select-wrapper">
+                <label for="city-select">🏙️ 都市:</label>
+                <select id="city-select" class="city-dropdown">
+                    <option value="city_001">首都</option>
+                </select>
+                <button class="btn btn-small btn-add-city" onclick="showAddCityModal()">➕ 都市を追加</button>
+            </div>
+            <div id="city-info" class="city-info-text"></div>
+        </div>
+
         <div class="game-info">
             <div class="turn-info">
                 <h2>ターン <span id="current-turn">1</span></h2>
@@ -145,6 +156,20 @@
                     🎲 ランダム
                 </button>
             </div>
+        </div>
+    </div>
+
+    <!-- 都市追加モーダル -->
+    <div id="add-city-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeAddCityModal()">&times;</span>
+            <h2>🏙️ 新しい都市を獲得</h2>
+            <p class="recruit-info">新しい都市を獲得します（コスト: 💰2000）</p>
+            <div class="city-name-input">
+                <label for="new-city-name">都市名:</label>
+                <input type="text" id="new-city-name" placeholder="新しい都市" maxlength="20">
+            </div>
+            <button class="btn btn-primary" onclick="addCity()">都市を獲得</button>
         </div>
     </div>
 

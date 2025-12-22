@@ -109,36 +109,57 @@ class CommandProcessor:
         """全コマンドを取得"""
         return [cmd.to_dict() for cmd in self.commands.values()]
 
-    def execute_command(self, game_state, command_id: str) -> tuple[bool, str]:
+    def execute_command(self, game_state, command_id: str, city_id: str = None) -> tuple[bool, str]:
         """コマンドを実行"""
         if command_id not in self.commands:
             return False, "無効なコマンドです"
 
         cmd = self.commands[command_id]
 
-        # コスト確認
+        # 都市を取得（指定がなければ現在の都市）
+        if city_id is None:
+            city = game_state.get_current_city()
+            city_id = game_state.current_city_id
+        else:
+            city = game_state.get_city(city_id)
+
+        if not city:
+            return False, "都市が見つかりません"
+
+        # コスト確認（帝国リソースと都市リソースを分けて確認）
         for resource, cost in cmd.cost.items():
-            if game_state.resources.get(resource, 0) < cost:
-                return False, f"リソース不足: {resource}"
+            if resource == "gold":
+                # 資金は帝国レベル
+                if game_state.empire_resources.get(resource, 0) < cost:
+                    return False, f"リソース不足: {resource}"
+            else:
+                # その他は都市レベル
+                if city.resources.get(resource, 0) < cost:
+                    return False, f"リソース不足: {resource}"
 
         # コスト支払い
         for resource, cost in cmd.cost.items():
-            game_state.resources[resource] -= cost
+            if resource == "gold":
+                game_state.empire_resources[resource] -= cost
+            else:
+                city.resources[resource] -= cost
 
         # 効果適用
         for resource, gain in cmd.effect.items():
             if resource == "progress":
                 # 進捗を対応する分野に追加
-                game_state.sectors[cmd.sector]["progress"] += gain
+                city.sectors[cmd.sector]["progress"] += gain
                 # レベルアップ判定
-                if game_state.sectors[cmd.sector]["progress"] >= 100:
-                    game_state.sectors[cmd.sector]["level"] += 1
-                    game_state.sectors[cmd.sector]["progress"] = 0
+                if city.sectors[cmd.sector]["progress"] >= 100:
+                    city.sectors[cmd.sector]["level"] += 1
+                    city.sectors[cmd.sector]["progress"] = 0
                     game_state.add_event(
-                        f"{cmd.sector}分野がレベル{game_state.sectors[cmd.sector]['level']}に上昇！"
+                        f"[{city.name}] {cmd.sector}分野がレベル{city.sectors[cmd.sector]['level']}に上昇！"
                     )
+            elif resource == "gold":
+                game_state.empire_resources[resource] = game_state.empire_resources.get(resource, 0) + gain
             else:
-                game_state.resources[resource] = game_state.resources.get(resource, 0) + gain
+                city.resources[resource] = city.resources.get(resource, 0) + gain
 
-        game_state.add_event(f"コマンド実行: {cmd.name}")
+        game_state.add_event(f"[{city.name}] コマンド実行: {cmd.name}")
         return True, f"{cmd.name}を実行しました"

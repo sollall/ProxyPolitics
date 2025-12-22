@@ -32,12 +32,14 @@ class TestTurnBasedSelection:
     def test_delegated_sector_blocking(self):
         """委任された分野の選択ブロック"""
         game_state = GameState()
+        city_id = game_state.current_city_id
+        city = game_state.get_current_city()
 
         # 経済を委任
-        game_state.delegate_sector("economy", "npc_001")
+        game_state.delegate_sector(city_id, "economy", "npc_001")
 
         # 委任されているか確認
-        assert game_state.sectors["economy"]["delegated_to"] == "npc_001"
+        assert city.sectors["economy"]["delegated_to"] == "npc_001"
 
         # プレイヤーは選択できない（フロントエンドでブロック）
         # バックエンドではこのチェックはAPIレベルで行われる
@@ -46,12 +48,14 @@ class TestTurnBasedSelection:
         """委任されていない分野の選択"""
         game_state = GameState()
         command_processor = CommandProcessor()
+        city_id = game_state.current_city_id
+        city = game_state.get_current_city()
 
         # 経済を委任
-        game_state.delegate_sector("economy", "npc_001")
+        game_state.delegate_sector(city_id, "economy", "npc_001")
 
         # 軍事は委任されていない
-        assert game_state.sectors["military"]["delegated_to"] is None
+        assert city.sectors["military"]["delegated_to"] is None
 
         # 軍事コマンドは実行可能
         success, message = command_processor.execute_command(game_state, "mil_recruit")
@@ -67,21 +71,23 @@ class TestTurnProgression:
         npc_manager = NPCManager()
         command_processor = CommandProcessor()
         npc_ai = NPCAI(npc_manager, command_processor)
+        city_id = game_state.current_city_id
+        city = game_state.get_current_city()
 
         # プレイヤーコマンド（経済）
         success, _ = command_processor.execute_command(game_state, "eco_invest")
         assert success is True
 
         # NPCに外交を委任
-        game_state.delegate_sector("diplomacy", "npc_003")
+        game_state.delegate_sector(city_id, "diplomacy", "npc_003")
 
         # NPCの自動実行
         npc_actions = npc_ai.process_delegated_sectors(game_state)
         assert len(npc_actions) > 0
 
         # 両方の分野で進捗があることを確認
-        assert game_state.sectors["economy"]["progress"] > 0
-        assert game_state.sectors["diplomacy"]["progress"] > 0
+        assert city.sectors["economy"]["progress"] > 0
+        assert city.sectors["diplomacy"]["progress"] > 0
 
     def test_turn_advance_clears_selections(self):
         """ターン進行後の選択クリア（概念的テスト）"""
@@ -106,9 +112,11 @@ class TestDelegationAndSelection:
         npc_manager = NPCManager()
         command_processor = CommandProcessor()
         npc_ai = NPCAI(npc_manager, command_processor)
+        city_id = game_state.current_city_id
+        city = game_state.get_current_city()
 
         # 経済を委任
-        game_state.delegate_sector("economy", "npc_001")
+        game_state.delegate_sector(city_id, "economy", "npc_001")
 
         # プレイヤーが経済コマンドを実行しようとする
         # （本来はフロントエンドでブロックされるが、バックエンドでも確認）
@@ -116,7 +124,7 @@ class TestDelegationAndSelection:
 
         # ターン進行時の処理をシミュレート
         for sector, command_id in player_commands.items():
-            if game_state.sectors[sector].get('delegated_to') is None:
+            if city.sectors[sector].get('delegated_to') is None:
                 command_processor.execute_command(game_state, command_id)
 
         # 経済は委任されているのでプレイヤーコマンドは実行されない
@@ -130,14 +138,16 @@ class TestDelegationAndSelection:
         """委任解除でプレイヤーの行動が可能に"""
         game_state = GameState()
         command_processor = CommandProcessor()
+        city_id = game_state.current_city_id
+        city = game_state.get_current_city()
 
         # 経済を委任
-        game_state.delegate_sector("economy", "npc_001")
-        assert game_state.sectors["economy"]["delegated_to"] == "npc_001"
+        game_state.delegate_sector(city_id, "economy", "npc_001")
+        assert city.sectors["economy"]["delegated_to"] == "npc_001"
 
         # 委任解除
-        game_state.delegate_sector("economy", None)
-        assert game_state.sectors["economy"]["delegated_to"] is None
+        game_state.delegate_sector(city_id, "economy", None)
+        assert city.sectors["economy"]["delegated_to"] is None
 
         # プレイヤーがコマンド実行可能
         success, _ = command_processor.execute_command(game_state, "eco_invest")
