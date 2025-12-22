@@ -7,7 +7,7 @@ import os
 # バックエンドのパスを追加
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'backend'))
 
-from models.game_state import GameState
+from models.empire import Empire
 from models.npc import NPCManager
 
 
@@ -72,20 +72,19 @@ class TestNPCRecruitment:
 
     def test_recruitment_with_cost(self):
         """コスト支払いありのNPC採用"""
-        game_state = GameState()
-        npc_manager = NPCManager()
+        empire = Empire()
 
         recruitment_cost = 500
-        initial_gold = game_state.resources['gold']
+        initial_gold = empire.resources['gold']
 
         # コスト確認と支払い
-        assert game_state.resources['gold'] >= recruitment_cost
-        game_state.resources['gold'] -= recruitment_cost
+        assert empire.resources['gold'] >= recruitment_cost
+        empire.resources['gold'] -= recruitment_cost
 
         # 採用
-        new_npc = npc_manager.recruit_npc("economy")
+        new_npc = empire.npc_manager.recruit_npc("economy")
 
-        assert game_state.resources['gold'] == initial_gold - recruitment_cost
+        assert empire.resources['gold'] == initial_gold - recruitment_cost
         assert new_npc is not None
 
     def test_multiple_recruitment(self):

@@ -6,8 +6,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import os
 
-from models.game_state import GameState
-from models.npc import NPCManager
+from models.empire import Empire
 from logic.command_processor import CommandProcessor
 from logic.npc_ai import NPCAI
 
@@ -15,10 +14,9 @@ app = Flask(__name__, static_folder='../frontend', static_url_path='')
 CORS(app)
 
 # グローバルゲーム状態（本番環境ではセッション管理が必要）
-game_state = GameState()
-npc_manager = NPCManager()
+game_state = Empire()
 command_processor = CommandProcessor()
-npc_ai = NPCAI(npc_manager, command_processor)
+npc_ai = NPCAI(game_state.npc_manager, command_processor)
 
 
 @app.route('/')
@@ -36,7 +34,7 @@ def get_state():
 @app.route('/api/npcs', methods=['GET'])
 def get_npcs():
     """全NPCリストを取得"""
-    return jsonify(npc_manager.get_all_npcs())
+    return jsonify(game_state.npc_manager.get_all_npcs())
 
 
 @app.route('/api/commands', methods=['GET'])
@@ -50,14 +48,71 @@ def get_commands():
     return jsonify(commands)
 
 
+@app.route('/api/cities', methods=['GET'])
+def get_cities():
+    """全都市リストを取得"""
+    cities = {city_id: city.to_dict() for city_id, city in game_state.cities.items()}
+    return jsonify({
+        "cities": cities,
+        "current_city_id": game_state.current_city_id
+    })
+
+
+@app.route('/api/cities/<city_id>/switch', methods=['POST'])
+def switch_city(city_id):
+    """都市を切り替え"""
+    success = game_state.set_current_city(city_id)
+
+    if success:
+        city = game_state.get_city(city_id)
+        return jsonify({
+            "success": True,
+            "message": f"{city.name}に切り替えました",
+            "current_city_id": game_state.current_city_id,
+            "state": game_state.to_dict()
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "message": "無効な都市IDです"
+        }), 400
+
+
+@app.route('/api/cities/add', methods=['POST'])
+def add_city():
+    """新しい都市を追加"""
+    data = request.json
+    name = data.get('name', '新しい都市')
+
+    # コスト（将来的には征服や建設のコストを設定）
+    cost = 2000
+
+    if game_state.resources.get('gold', 0) < cost:
+        return jsonify({
+            "success": False,
+            "message": f"資金不足です（必要: {cost}、所持: {game_state.resources['gold']}）"
+        }), 400
+
+    game_state.resources['gold'] -= cost
+    new_city = game_state.add_city(name)
+
+    return jsonify({
+        "success": True,
+        "message": f"新しい都市「{name}」を獲得しました",
+        "city": new_city.to_dict(),
+        "state": game_state.to_dict()
+    })
+
+
 @app.route('/api/delegate', methods=['POST'])
 def delegate_sector():
     """分野にNPCを委任"""
     data = request.json
     sector = data.get('sector')
     npc_id = data.get('npc_id')  # Noneの場合は委任解除
+    city_id = data.get('city_id', game_state.current_city_id)  # デフォルトは現在の都市
 
-    success = game_state.delegate_sector(sector, npc_id)
+    success = game_state.delegate_sector(city_id, sector, npc_id)
 
     if success:
         return jsonify({
@@ -97,10 +152,11 @@ def next_turn():
     npc_actions = []
 
     # プレイヤーのコマンドを実行（委任されていない分野のみ）
+    current_city = game_state.get_current_city()
     for sector, command_id in player_commands.items():
-        if sector in game_state.sectors:
+        if current_city and sector in current_city.sectors:
             # 委任されていないことを確認
-            if game_state.sectors[sector].get('delegated_to') is None:
+            if current_city.sectors[sector].get('delegated_to') is None:
                 success, message = command_processor.execute_command(game_state, command_id)
                 if success:
                     log_message = f"[プレイヤー] {sector}分野で{message}"
@@ -116,8 +172,9 @@ def next_turn():
     # ランダムイベント（人口増加など）
     import random
     population_growth = random.randint(50, 200)
-    game_state.resources["population"] += population_growth
-    game_state.add_event(f"人口が{population_growth}人増加しました")
+    if current_city:
+        current_city.resources["population"] += population_growth
+        game_state.add_event(f"[{current_city.name}] 人口が{population_growth}人増加しました")
 
     return jsonify({
         "success": True,
@@ -147,7 +204,7 @@ def recruit_npc():
     game_state.resources['gold'] -= recruitment_cost
 
     # NPCを採用
-    new_npc = npc_manager.recruit_npc(specialty)
+    new_npc = game_state.npc_manager.recruit_npc(specialty)
 
     game_state.add_event(f"新しいNPC「{new_npc.name}」を採用しました（コスト: {recruitment_cost}）")
 
@@ -156,16 +213,15 @@ def recruit_npc():
         "message": f"NPCを採用しました: {new_npc.name}",
         "npc": new_npc.to_dict(),
         "state": game_state.to_dict(),
-        "all_npcs": npc_manager.get_all_npcs()
+        "all_npcs": game_state.npc_manager.get_all_npcs()
     })
 
 
 @app.route('/api/reset', methods=['POST'])
 def reset_game():
     """ゲームをリセット"""
-    global game_state, npc_manager
-    game_state = GameState()
-    npc_manager = NPCManager()
+    global game_state
+    game_state = Empire()
 
     return jsonify({
         "success": True,

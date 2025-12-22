@@ -12,14 +12,15 @@ class NPCAI:
         self.npc_manager = npc_manager
         self.command_processor = command_processor
 
-    def decide_command(self, game_state, sector: str, npc_id: str) -> Optional[str]:
+    def decide_command(self, game_state, sector: str, npc_id: str, city_id: str = None) -> Optional[str]:
         """
         NPCが委任された分野でコマンドを決定
 
         Args:
-            game_state: ゲーム状態
+            game_state: ゲーム状態（Empire）
             sector: 委任された分野
             npc_id: NPC ID
+            city_id: 都市ID（Noneの場合は現在の都市）
 
         Returns:
             選択されたコマンドID、または None
@@ -28,17 +29,29 @@ class NPCAI:
         if not npc:
             return None
 
+        # 都市を取得
+        city = game_state.get_city(city_id) if city_id else game_state.get_current_city()
+        if not city:
+            return None
+
         # 分野のコマンドリストを取得
         available_commands = self.command_processor.get_commands_by_sector(sector)
 
-        # 実行可能なコマンドのみフィルタリング
+        # 実行可能なコマンドのみフィルタリング（帝国リソースと都市リソースを分けて確認）
         executable_commands = []
         for cmd_dict in available_commands:
             can_execute = True
             for resource, cost in cmd_dict["cost"].items():
-                if game_state.resources.get(resource, 0) < cost:
-                    can_execute = False
-                    break
+                if resource == "gold":
+                    # 資金は帝国レベル
+                    if game_state.resources.get(resource, 0) < cost:
+                        can_execute = False
+                        break
+                else:
+                    # その他は都市レベル
+                    if city.resources.get(resource, 0) < cost:
+                        can_execute = False
+                        break
             if can_execute:
                 executable_commands.append(cmd_dict)
 
@@ -107,28 +120,43 @@ class NPCAI:
                       for cmd in commands]
             return random.choices(commands, weights=weights)[0]
 
-    def process_delegated_sectors(self, game_state) -> List[str]:
+    def process_delegated_sectors(self, game_state, city_id: str = None) -> List[str]:
         """
         委任された全分野のNPC決定を処理
+
+        Args:
+            game_state: ゲーム状態
+            city_id: 処理する都市ID（Noneの場合は全都市）
 
         Returns:
             実行されたコマンドのログ
         """
         executed_commands = []
 
-        for sector, sector_data in game_state.sectors.items():
-            npc_id = sector_data.get("delegated_to")
-            if npc_id:
-                # NPCが決定
-                command_id = self.decide_command(game_state, sector, npc_id)
-                if command_id:
-                    npc = self.npc_manager.get_npc(npc_id)
-                    success, message = self.command_processor.execute_command(
-                        game_state, command_id
-                    )
-                    if success:
-                        log_message = f"[NPC: {npc.name}] {sector}分野で{message}"
-                        executed_commands.append(log_message)
-                        game_state.add_event(log_message)
+        # 処理する都市のリストを決定
+        if city_id:
+            cities = {city_id: game_state.get_city(city_id)}
+        else:
+            cities = game_state.cities
+
+        # 各都市の委任された分野を処理
+        for cid, city in cities.items():
+            if not city:
+                continue
+
+            for sector, sector_data in city.sectors.items():
+                npc_id = sector_data.get("delegated_to")
+                if npc_id:
+                    # NPCが決定（都市IDを渡す）
+                    command_id = self.decide_command(game_state, sector, npc_id, cid)
+                    if command_id:
+                        npc = self.npc_manager.get_npc(npc_id)
+                        success, message = self.command_processor.execute_command(
+                            game_state, command_id, cid
+                        )
+                        if success:
+                            log_message = f"[NPC: {npc.name}] [{city.name}] {sector}分野で{message}"
+                            executed_commands.append(log_message)
+                            # add_eventは既にcommand_processor内で呼ばれているのでここでは不要
 
         return executed_commands
