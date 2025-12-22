@@ -154,3 +154,146 @@ class TestTurnProgression:
         assert len(npc_actions) > 0
         assert city.sectors["economy"]["progress"] > 0
         assert city.sectors["diplomacy"]["progress"] > 0
+
+
+class TestAllCommands:
+    """全コマンドのテスト"""
+
+    def test_economy_invest(self):
+        """経済：市場投資"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        success, message = command_processor.execute_command(empire, "eco_invest")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 200 + 300
+        assert city.sectors["economy"]["progress"] >= 10
+
+    def test_economy_tax(self):
+        """経済：徴税"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_population = city.resources['population']
+        success, message = command_processor.execute_command(empire, "eco_tax")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold + 150
+        assert city.resources['population'] == initial_population - 100
+        assert city.sectors["economy"]["progress"] >= 5
+
+    def test_economy_trade(self):
+        """経済：交易促進"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_influence = city.resources['diplomatic_influence']
+        success, message = command_processor.execute_command(empire, "eco_trade")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 100 + 200
+        assert city.resources['diplomatic_influence'] == initial_influence - 10
+        assert city.sectors["economy"]["progress"] >= 8
+
+    def test_diplomacy_negotiate(self):
+        """外交：外交交渉"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_influence = city.resources['diplomatic_influence']
+        success, message = command_processor.execute_command(empire, "dip_negotiate")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 100
+        assert city.resources['diplomatic_influence'] == initial_influence + 20
+        assert city.sectors["diplomacy"]["progress"] >= 10
+
+    def test_diplomacy_alliance(self):
+        """外交：同盟締結"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_influence = city.resources['diplomatic_influence']
+        initial_military = city.resources['military_power']
+        success, message = command_processor.execute_command(empire, "dip_alliance")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 300
+        assert city.resources['diplomatic_influence'] == initial_influence + 50
+        assert city.resources['military_power'] == initial_military - 50
+        assert city.sectors["diplomacy"]["progress"] >= 15
+
+    def test_diplomacy_culture(self):
+        """外交：文化交流"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_influence = city.resources['diplomatic_influence']
+        initial_population = city.resources['population']
+        success, message = command_processor.execute_command(empire, "dip_culture")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 150
+        assert city.resources['diplomatic_influence'] == initial_influence + 15
+        assert city.resources['population'] == initial_population + 200
+        assert city.sectors["diplomacy"]["progress"] >= 8
+
+    def test_military_recruit(self):
+        """軍事：兵士募集"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_population = city.resources['population']
+        initial_military = city.resources['military_power']
+        success, message = command_processor.execute_command(empire, "mil_recruit")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 200
+        assert city.resources['population'] == initial_population - 200
+        assert city.resources['military_power'] == initial_military + 100
+        assert city.sectors["military"]["progress"] >= 10
+
+    def test_military_training(self):
+        """軍事：軍事訓練"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_military = city.resources['military_power']
+        success, message = command_processor.execute_command(empire, "mil_training")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 150
+        assert city.resources['military_power'] == initial_military + 80
+        assert city.sectors["military"]["progress"] >= 8
+
+    def test_military_fortify(self):
+        """軍事：防衛強化"""
+        empire = Empire()
+        command_processor = CommandProcessor()
+        city = empire.get_current_city()
+
+        initial_gold = empire.resources['gold']
+        initial_military = city.resources['military_power']
+        success, message = command_processor.execute_command(empire, "mil_fortify")
+
+        assert success is True
+        assert empire.resources['gold'] == initial_gold - 250
+        assert city.resources['military_power'] == initial_military + 120
+        assert city.sectors["military"]["progress"] >= 12

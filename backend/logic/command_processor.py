@@ -47,7 +47,7 @@ class CommandProcessor:
             ),
             "eco_tax": Command(
                 "eco_tax", "徴税", "economy",
-                {"population": -100},
+                {"population": 100},
                 {"gold": 150, "progress": 5},
                 "税金を徴収する（人口が減少）"
             ),
@@ -81,7 +81,7 @@ class CommandProcessor:
             # 軍事コマンド
             "mil_recruit": Command(
                 "mil_recruit", "兵士募集", "military",
-                {"gold": 200, "population": -200},
+                {"gold": 200, "population": 200},
                 {"military_power": 100, "progress": 10},
                 "兵士を募集して軍事力を増強"
             ),
