@@ -1,566 +1,424 @@
 // ProxyPolitics - フロントエンドJavaScript
 
-const API_BASE = 'http://localhost:5000/api';
-
-let gameState = null;
+// グローバル変数
+let gameState = {};
 let allNPCs = [];
 let allCommands = [];
-let currentDelegationSector = null;
-let selectedCommands = {
-    economy: null,
-    diplomacy: null,
-    military: null
-}; // 各分野で選択されたコマンド
+let currentView = 'empire'; // 'empire' or 'city'
+let currentSectorForDelegation = '';
 
 // 初期化
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
     loadGameState();
-    loadNPCs();
-    loadCommands();
-
-    document.getElementById('next-turn-btn').addEventListener('click', nextTurn);
-    document.getElementById('reset-btn').addEventListener('click', resetGame);
-    document.getElementById('city-select').addEventListener('change', switchCity);
+    setupEventListeners();
 });
 
-// ゲーム状態を読み込み
-async function loadGameState() {
-    try {
-        const response = await fetch(`${API_BASE}/state`);
-        gameState = await response.json();
-        updateUI();
-    } catch (error) {
-        console.error('ゲーム状態の読み込みエラー:', error);
+function setupEventListeners() {
+    // 帝国ビューのイベント
+    document.getElementById('empire-reset-btn').addEventListener('click', resetGame);
+
+    // 都市ビューのイベント
+    document.getElementById('next-turn-btn').addEventListener('click', nextTurn);
+}
+
+// ==================== ビュー切り替え ====================
+
+function switchToEmpireView() {
+    currentView = 'empire';
+    document.getElementById('empire-view').classList.remove('hidden');
+    document.getElementById('city-view').classList.add('hidden');
+    document.getElementById('empire-view-btn').classList.add('active');
+    document.getElementById('city-view-btn').classList.remove('active');
+    updateEmpireView();
+}
+
+function switchToCityView(cityId = null) {
+    if (cityId) {
+        // 都市を切り替え
+        fetch(`/api/cities/${cityId}/switch`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                gameState = data.state;
+                showCityView();
+            }
+        });
+    } else {
+        showCityView();
     }
 }
 
-// NPCリストを読み込み
-async function loadNPCs() {
-    try {
-        const response = await fetch(`${API_BASE}/npcs`);
-        allNPCs = await response.json();
-        renderNPCList();
-    } catch (error) {
-        console.error('NPC読み込みエラー:', error);
+function showCityView() {
+    currentView = 'city';
+    document.getElementById('empire-view').classList.add('hidden');
+    document.getElementById('city-view').classList.remove('hidden');
+    document.getElementById('empire-view-btn').classList.remove('active');
+    document.getElementById('city-view-btn').classList.add('active');
+    updateCityView();
+}
+
+// ==================== ゲーム状態の読み込みと更新 ====================
+
+function loadGameState() {
+    Promise.all([
+        fetch('/api/state').then(r => r.json()),
+        fetch('/api/npcs').then(r => r.json()),
+        fetch('/api/commands').then(r => r.json())
+    ]).then(([state, npcs, commands]) => {
+        gameState = state;
+        allNPCs = npcs;
+        allCommands = commands;
+
+        if (currentView === 'empire') {
+            updateEmpireView();
+        } else {
+            updateCityView();
+        }
+    });
+}
+
+// ==================== 帝国ビューの更新 ====================
+
+function updateEmpireView() {
+    // ターン数
+    document.getElementById('empire-turn').textContent = gameState.turn;
+
+    // 帝国リソース
+    document.getElementById('empire-gold').textContent = gameState.resources.gold;
+
+    // 都市リスト
+    updateCitiesList();
+
+    // NPC一覧
+    updateEmpireNPCList();
+
+    // イベントログ
+    updateEmpireEventLog();
+}
+
+function updateCitiesList() {
+    const citiesList = document.getElementById('cities-list');
+    citiesList.innerHTML = '';
+
+    for (const [cityId, city] of Object.entries(gameState.cities)) {
+        const cityCard = document.createElement('div');
+        cityCard.className = 'city-card';
+        cityCard.onclick = () => switchToCityView(cityId);
+
+        cityCard.innerHTML = `
+            <h4>${city.name}</h4>
+            <div class="city-card-info">
+                <div>👥 人口: ${city.resources.population}</div>
+                <div>⚔️ 軍事力: ${city.resources.military_power}</div>
+                <div>🤝 外交影響力: ${city.resources.diplomatic_influence}</div>
+            </div>
+        `;
+
+        citiesList.appendChild(cityCard);
     }
 }
 
-// コマンドリストを読み込み
-async function loadCommands() {
-    try {
-        const response = await fetch(`${API_BASE}/commands`);
-        allCommands = await response.json();
-        renderCommands();
-    } catch (error) {
-        console.error('コマンド読み込みエラー:', error);
-    }
+function updateEmpireNPCList() {
+    const npcList = document.getElementById('empire-npc-list');
+    npcList.innerHTML = '';
+
+    allNPCs.forEach(npc => {
+        const npcCard = document.createElement('div');
+        npcCard.className = 'npc-card';
+
+        const personalityText = Object.entries(npc.personality)
+            .map(([key, value]) => `${key}: ${value}`)
+            .join(', ');
+
+        npcCard.innerHTML = `
+            <div class="npc-card-name">${npc.name}</div>
+            <div class="npc-card-specialty">${getSpecialtyName(npc.specialty)}</div>
+            <div class="npc-card-personality">${personalityText}</div>
+        `;
+
+        npcList.appendChild(npcCard);
+    });
 }
 
-// UIを更新
-function updateUI() {
-    if (!gameState) return;
+function updateEmpireEventLog() {
+    const eventList = document.getElementById('empire-event-list');
+    eventList.innerHTML = '';
 
-    // 都市セレクターを更新
-    updateCitySelector();
+    gameState.event_log.forEach(event => {
+        const eventItem = document.createElement('div');
+        eventItem.className = 'event-item';
+        eventItem.textContent = event;
+        eventList.appendChild(eventItem);
+    });
+}
 
-    // ターン
-    document.getElementById('current-turn').textContent = gameState.turn;
+// ==================== 都市ビューの更新 ====================
 
-    // 現在の都市を取得
+function updateCityView() {
     const currentCity = gameState.cities[gameState.current_city_id];
     if (!currentCity) return;
 
-    // 資源（帝国リソース + 都市リソース）
-    document.getElementById('resource-gold').textContent = gameState.resources.gold;
+    // 都市名
+    document.getElementById('city-name').textContent = currentCity.name;
+
+    // ターン数
+    document.getElementById('city-turn').textContent = gameState.turn;
+
+    // リソース
+    document.getElementById('city-gold').textContent = gameState.resources.gold;
     document.getElementById('resource-population').textContent = currentCity.resources.population;
     document.getElementById('resource-military').textContent = currentCity.resources.military_power;
     document.getElementById('resource-diplomacy').textContent = currentCity.resources.diplomatic_influence;
 
     // 各分野
-    for (const [sector, data] of Object.entries(currentCity.sectors)) {
-        document.getElementById(`${sector}-level`).textContent = data.level;
-        document.getElementById(`${sector}-progress`).style.width = `${data.progress}%`;
+    ['economy', 'diplomacy', 'military'].forEach(sector => {
+        const sectorData = currentCity.sectors[sector];
+        document.getElementById(`${sector}-level`).textContent = sectorData.level;
+        document.getElementById(`${sector}-progress`).style.width = `${sectorData.progress}%`;
 
-        const delegateName = data.delegated_to
-            ? allNPCs.find(npc => npc.id === data.delegated_to)?.name || '不明'
+        const delegateName = sectorData.delegated_to
+            ? allNPCs.find(npc => npc.id === sectorData.delegated_to)?.name || '不明'
             : 'なし';
         document.getElementById(`${sector}-delegate`).textContent = delegateName;
-    }
+
+        // コマンド選択を更新
+        updateCommandSelect(sector, sectorData.delegated_to);
+    });
 
     // イベントログ
-    renderEventLog();
-
-    // コマンドを再レンダリング（委任状態が変わった可能性があるため）
-    renderCommands();
+    updateCityEventLog();
 }
 
-// 都市セレクターを更新
-function updateCitySelector() {
-    const selector = document.getElementById('city-select');
-    selector.innerHTML = '';
+function updateCommandSelect(sector, delegated_to) {
+    const select = document.getElementById(`${sector}-command`);
+    select.innerHTML = '<option value="">コマンドを選択...</option>';
 
-    for (const [cityId, city] of Object.entries(gameState.cities)) {
-        const option = document.createElement('option');
-        option.value = cityId;
-        option.textContent = city.name;
-        if (cityId === gameState.current_city_id) {
-            option.selected = true;
-        }
-        selector.appendChild(option);
-    }
-
-    // 都市情報テキストを更新
-    const cityInfoText = document.getElementById('city-info');
-    const cityCount = Object.keys(gameState.cities).length;
-    cityInfoText.textContent = `全${cityCount}都市を領有中`;
-}
-
-// イベントログをレンダリング
-function renderEventLog() {
-    const eventList = document.getElementById('event-list');
-    eventList.innerHTML = '';
-
-    if (gameState.event_log) {
-        gameState.event_log.slice().reverse().forEach(event => {
-            const eventItem = document.createElement('div');
-            eventItem.className = 'event-item';
-            eventItem.textContent = event;
-            eventList.appendChild(eventItem);
-        });
-    }
-}
-
-// NPCリストをレンダリング
-function renderNPCList() {
-    const container = document.getElementById('npc-list-container');
-    container.innerHTML = '';
-
-    allNPCs.forEach(npc => {
-        const card = document.createElement('div');
-        card.className = 'npc-card';
-
-        const specialty = getSectorEmoji(npc.specialty);
-        const personalityText = Object.entries(npc.personality)
-            .map(([key, value]) => `${getPersonalityName(key)}: ${value}`)
-            .join(', ');
-
-        card.innerHTML = `
-            <h4>${npc.name}</h4>
-            <span class="npc-specialty">${specialty} ${getSectorName(npc.specialty)}</span>
-            <div class="npc-stats">
-                <div>性格: ${personalityText}</div>
-                <div>忠誠度: ${npc.loyalty} | 経験値: ${npc.experience}</div>
-            </div>
-        `;
-        container.appendChild(card);
-    });
-}
-
-// コマンドをレンダリング
-function renderCommands() {
-    const sectors = ['economy', 'diplomacy', 'military'];
-
-    if (!gameState || !gameState.cities || !gameState.current_city_id) return;
-
-    const currentCity = gameState.cities[gameState.current_city_id];
-    if (!currentCity) return;
-
-    sectors.forEach(sector => {
-        const container = document.getElementById(`${sector}-commands`);
-        container.innerHTML = '';
-
-        // 委任されているかチェック
-        const isDelegated = currentCity.sectors[sector].delegated_to !== null;
-
-        if (isDelegated) {
-            // 委任されている場合はメッセージを表示
-            const message = document.createElement('div');
-            message.className = 'delegated-message';
-            message.textContent = '👤 NPCに委任中 - 自動で行動します';
-            container.appendChild(message);
-            return;
-        }
-
-        const sectorCommands = allCommands.filter(cmd => cmd.sector === sector);
-
-        sectorCommands.forEach(cmd => {
-            const btn = document.createElement('button');
-            btn.className = 'command-btn';
-            btn.dataset.commandId = cmd.id;
-            btn.dataset.sector = sector;
-            btn.onclick = () => selectCommand(sector, cmd.id);
-
-            const costText = Object.entries(cmd.cost)
-                .map(([res, val]) => `${getResourceName(res)}: ${val}`)
-                .join(', ');
-
-            const effectText = Object.entries(cmd.effect)
-                .map(([res, val]) => `${getResourceName(res)}: +${val}`)
-                .join(', ');
-
-            btn.innerHTML = `
-                <h4>${cmd.name}</h4>
-                <p>${cmd.description}</p>
-                <div class="command-cost">コスト: ${costText}</div>
-                <div class="command-effect">効果: ${effectText}</div>
-            `;
-
-            container.appendChild(btn);
-        });
-    });
-
-    updateCommandButtons();
-}
-
-// コマンドボタンの有効/無効を更新
-function updateCommandButtons() {
-    if (!gameState) return;
-
-    const sectors = ['economy', 'diplomacy', 'military'];
-
-    sectors.forEach(sector => {
-        const sectorCommands = allCommands.filter(cmd => cmd.sector === sector);
-
-        sectorCommands.forEach(cmd => {
-            const btn = document.querySelector(`button[data-command-id="${cmd.id}"]`);
-            if (!btn) return;
-
-            // 選択状態を反映
-            if (selectedCommands[sector] === cmd.id) {
-                btn.classList.add('selected');
-            } else {
-                btn.classList.remove('selected');
-            }
-
-            // リソース確認
-            let canExecute = true;
-            for (const [resource, cost] of Object.entries(cmd.cost)) {
-                if ((gameState.resources[resource] || 0) < cost) {
-                    canExecute = false;
-                    break;
-                }
-            }
-
-            if (canExecute) {
-                btn.classList.remove('disabled');
-            } else {
-                btn.classList.add('disabled');
-            }
-        });
-    });
-}
-
-// コマンドを選択
-function selectCommand(sector, commandId) {
-    if (!gameState || !gameState.cities || !gameState.current_city_id) return;
-
-    const currentCity = gameState.cities[gameState.current_city_id];
-    if (!currentCity) return;
-
-    // 委任されている場合は選択不可
-    if (currentCity.sectors[sector].delegated_to !== null) {
-        alert('この分野はNPCに委任されています');
+    // 委任されている場合は無効化
+    if (delegated_to) {
+        select.disabled = true;
+        select.innerHTML = '<option value="">委任中</option>';
         return;
     }
 
-    // 同じコマンドをクリックした場合は選択解除
-    if (selectedCommands[sector] === commandId) {
-        selectedCommands[sector] = null;
-    } else {
-        selectedCommands[sector] = commandId;
-    }
-
-    updateCommandButtons();
+    select.disabled = false;
+    const sectorCommands = allCommands.filter(cmd => cmd.sector === sector);
+    sectorCommands.forEach(cmd => {
+        const option = document.createElement('option');
+        option.value = cmd.id;
+        option.textContent = `${cmd.name} (${formatCost(cmd.cost)})`;
+        select.appendChild(option);
+    });
 }
 
-// 委任モーダルを表示
-function showDelegationModal(sector) {
-    currentDelegationSector = sector;
-    const modal = document.getElementById('delegation-modal');
-    const sectorName = getSectorName(sector);
+function updateCityEventLog() {
+    const eventList = document.getElementById('city-event-list');
+    eventList.innerHTML = '';
 
-    document.getElementById('modal-sector-name').textContent = `${getSectorEmoji(sector)} ${sectorName}分野に委任するNPCを選択`;
+    gameState.event_log.forEach(event => {
+        const eventItem = document.createElement('div');
+        eventItem.className = 'event-item';
+        eventItem.textContent = event;
+        eventList.appendChild(eventItem);
+    });
+}
 
-    const selection = document.getElementById('npc-selection');
-    selection.innerHTML = '';
+// ==================== ターン進行 ====================
 
-    // 該当分野が得意なNPCを優先表示
-    const sortedNPCs = [...allNPCs].sort((a, b) => {
-        if (a.specialty === sector && b.specialty !== sector) return -1;
-        if (a.specialty !== sector && b.specialty === sector) return 1;
-        return 0;
+function nextTurn() {
+    const playerCommands = {};
+
+    // 各分野の選択されたコマンドを取得
+    ['economy', 'diplomacy', 'military'].forEach(sector => {
+        const select = document.getElementById(`${sector}-command`);
+        if (select.value) {
+            playerCommands[sector] = select.value;
+        }
     });
 
-    sortedNPCs.forEach(npc => {
-        const btn = document.createElement('button');
-        btn.className = 'npc-select-btn';
-        btn.onclick = () => delegateToNPC(npc.id);
+    fetch('/api/next_turn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_commands: playerCommands })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateCityView();
 
-        const isSpecialist = npc.specialty === sector ? '⭐ ' : '';
-        const personalityText = Object.entries(npc.personality)
-            .map(([key, value]) => `${getPersonalityName(key)}: ${value}`)
-            .join(', ');
+            // 選択をクリア
+            ['economy', 'diplomacy', 'military'].forEach(sector => {
+                const select = document.getElementById(`${sector}-command`);
+                if (!select.disabled) {
+                    select.value = '';
+                }
+            });
+        }
+    });
+}
 
-        btn.innerHTML = `
-            <h4>${isSpecialist}${npc.name}</h4>
-            <div>専門: ${getSectorName(npc.specialty)}</div>
-            <div>性格: ${personalityText}</div>
-        `;
+// ==================== NPC委任 ====================
 
-        selection.appendChild(btn);
+function showDelegateModal(sector) {
+    currentSectorForDelegation = sector;
+    const modal = document.getElementById('delegate-modal');
+    const npcList = document.getElementById('npc-list');
+    npcList.innerHTML = '';
+
+    // 委任解除ボタン
+    const undelegateBtn = document.createElement('button');
+    undelegateBtn.className = 'btn btn-secondary';
+    undelegateBtn.textContent = '委任解除';
+    undelegateBtn.onclick = () => delegateToNPC(null);
+    npcList.appendChild(undelegateBtn);
+
+    // NPC一覧
+    allNPCs.forEach(npc => {
+        const npcBtn = document.createElement('button');
+        npcBtn.className = 'npc-option-btn';
+        npcBtn.textContent = `${npc.name} (${getSpecialtyName(npc.specialty)})`;
+        npcBtn.onclick = () => delegateToNPC(npc.id);
+        npcList.appendChild(npcBtn);
     });
 
     modal.style.display = 'block';
 }
 
-// 委任モーダルを閉じる
-function closeDelegationModal() {
-    document.getElementById('delegation-modal').style.display = 'none';
-    currentDelegationSector = null;
+function closeDelegateModal() {
+    document.getElementById('delegate-modal').style.display = 'none';
 }
 
-// NPCに委任
-async function delegateToNPC(npcId) {
-    if (!currentDelegationSector) return;
+function delegateToNPC(npcId) {
+    fetch('/api/delegate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            sector: currentSectorForDelegation,
+            npc_id: npcId,
+            city_id: gameState.current_city_id
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateCityView();
+            closeDelegateModal();
+        }
+    });
+}
 
-    try {
-        const response = await fetch(`${API_BASE}/delegate`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                sector: currentDelegationSector,
-                npc_id: npcId,
-                city_id: gameState.current_city_id
-            })
-        });
+// ==================== 都市追加 ====================
 
-        const result = await response.json();
+function showAddCityModal() {
+    document.getElementById('add-city-modal').style.display = 'block';
+}
 
-        if (result.success) {
-            gameState = result.state;
-            // 委任した分野の選択をクリア
-            selectedCommands[currentDelegationSector] = null;
-            updateUI();
-            renderCommands();
-            closeDelegationModal();
+function closeAddCityModal() {
+    document.getElementById('add-city-modal').style.display = 'none';
+    document.getElementById('new-city-name').value = '';
+}
+
+function addCity() {
+    const name = document.getElementById('new-city-name').value || '新しい都市';
+
+    fetch('/api/cities/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: name })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+            closeAddCityModal();
         } else {
-            alert(result.message);
+            alert(data.message);
         }
-    } catch (error) {
-        console.error('委任エラー:', error);
-    }
+    });
 }
 
-// 次のターン
-async function nextTurn() {
-    try {
-        // 選択されたコマンドを収集
-        const playerCommands = {};
-        for (const [sector, commandId] of Object.entries(selectedCommands)) {
-            if (commandId !== null && gameState.sectors[sector].delegated_to === null) {
-                playerCommands[sector] = commandId;
-            }
-        }
+// ==================== NPC採用 ====================
 
-        const response = await fetch(`${API_BASE}/next_turn`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ player_commands: playerCommands })
-        });
+function showRecruitModal() {
+    document.getElementById('recruit-modal').style.display = 'block';
+}
 
-        const result = await response.json();
+function closeRecruitModal() {
+    document.getElementById('recruit-modal').style.display = 'none';
+    document.getElementById('recruit-specialty').value = '';
+}
 
-        if (result.success) {
-            gameState = result.state;
+function recruitNPC() {
+    const specialty = document.getElementById('recruit-specialty').value || null;
 
-            // 選択をクリア
-            selectedCommands = {
-                economy: null,
-                diplomacy: null,
-                military: null
-            };
-
-            updateUI();
-            renderCommands();
-
-            if (result.npc_actions && result.npc_actions.length > 0) {
-                console.log('NPC実行:', result.npc_actions);
-            }
-            if (result.player_actions && result.player_actions.length > 0) {
-                console.log('プレイヤー実行:', result.player_actions);
-            }
+    fetch('/api/recruit_npc', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ specialty: specialty })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            allNPCs = data.all_npcs;
+            updateEmpireView();
+            closeRecruitModal();
         } else {
-            alert(result.message || 'ターン進行に失敗しました');
+            alert(data.message);
         }
-    } catch (error) {
-        console.error('ターン進行エラー:', error);
-        alert('ターン進行中にエラーが発生しました');
-    }
+    });
 }
 
-// ゲームリセット
-async function resetGame() {
-    if (!confirm('ゲームをリセットしますか?')) return;
+// ==================== リセット ====================
 
-    try {
-        const response = await fetch(`${API_BASE}/reset`, {
-            method: 'POST'
-        });
+function resetGame() {
+    if (!confirm('ゲームをリセットしますか？')) return;
 
-        const result = await response.json();
-
-        if (result.success) {
-            gameState = result.state;
-            updateUI();
-            updateCommandButtons();
+    fetch('/api/reset', {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadGameState();
         }
-    } catch (error) {
-        console.error('リセットエラー:', error);
-    }
+    });
 }
 
-// ヘルパー関数
-function getSectorName(sector) {
-    const names = {
-        economy: '経済',
-        diplomacy: '外交',
-        military: '軍事'
-    };
-    return names[sector] || sector;
-}
+// ==================== ユーティリティ関数 ====================
 
-function getSectorEmoji(sector) {
-    const emojis = {
-        economy: '💰',
-        diplomacy: '🤝',
-        military: '⚔️'
-    };
-    return emojis[sector] || '📋';
+function formatCost(cost) {
+    return Object.entries(cost)
+        .map(([resource, value]) => `${getResourceName(resource)} ${value}`)
+        .join(', ');
 }
 
 function getResourceName(resource) {
     const names = {
-        gold: '資金',
-        population: '人口',
-        military_power: '軍事力',
-        diplomatic_influence: '外交影響力',
-        progress: '進捗'
+        'gold': '💰',
+        'population': '👥',
+        'military_power': '⚔️',
+        'diplomatic_influence': '🤝'
     };
     return names[resource] || resource;
 }
 
-function getPersonalityName(personality) {
+function getSpecialtyName(specialty) {
     const names = {
-        aggressive: '積極性',
-        cautious: '慎重性',
-        balanced: 'バランス'
+        'economy': '経済',
+        'diplomacy': '外交',
+        'military': '軍事'
     };
-    return names[personality] || personality;
+    return names[specialty] || specialty;
 }
 
-// 都市を切り替え
-async function switchCity() {
-    const cityId = document.getElementById('city-select').value;
-
-    try {
-        const response = await fetch(`${API_BASE}/cities/${cityId}/switch`, {
-            method: 'POST'
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            gameState = result.state;
-            // 選択をクリア（都市ごとに異なるため）
-            selectedCommands = {
-                economy: null,
-                diplomacy: null,
-                military: null
-            };
-            updateUI();
-        } else {
-            alert(result.message);
-        }
-    } catch (error) {
-        console.error('都市切り替えエラー:', error);
-        alert('都市の切り替えに失敗しました');
-    }
-}
-
-// 都市追加モーダルを表示
-function showAddCityModal() {
-    document.getElementById('add-city-modal').style.display = 'block';
-    document.getElementById('new-city-name').value = '';
-}
-
-// 都市追加モーダルを閉じる
-function closeAddCityModal() {
-    document.getElementById('add-city-modal').style.display = 'none';
-}
-
-// 新しい都市を追加
-async function addCity() {
-    const name = document.getElementById('new-city-name').value.trim() || '新しい都市';
-
-    try {
-        const response = await fetch(`${API_BASE}/cities/add`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: name })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            gameState = result.state;
-            updateUI();
-            closeAddCityModal();
-            alert(`✅ ${result.message}`);
-        } else {
-            alert(`❌ ${result.message}`);
-        }
-    } catch (error) {
-        console.error('都市追加エラー:', error);
-        alert('都市追加中にエラーが発生しました');
-    }
-}
-
-// NPC採用モーダルを表示
-function showRecruitModal() {
-    const modal = document.getElementById('recruit-modal');
-    modal.style.display = 'block';
-}
-
-// NPC採用モーダルを閉じる
-function closeRecruitModal() {
-    document.getElementById('recruit-modal').style.display = 'none';
-}
-
-// NPCを採用
-async function recruitNPC(specialty) {
-    try {
-        const response = await fetch(`${API_BASE}/recruit_npc`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ specialty: specialty })
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            gameState = result.state;
-            allNPCs = result.all_npcs;
-            updateUI();
-            updateCommandButtons();
-            renderNPCList();
-            closeRecruitModal();
-
-            alert(`✅ ${result.message}\n\n専門: ${getSectorName(result.npc.specialty)}\n性格: ${Object.entries(result.npc.personality).map(([k, v]) => `${getPersonalityName(k)}: ${v}`).join(', ')}`);
-        } else {
-            alert(`❌ ${result.message}`);
-        }
-    } catch (error) {
-        console.error('NPC採用エラー:', error);
-        alert('NPC採用中にエラーが発生しました');
+// モーダルの外をクリックで閉じる
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
     }
 }

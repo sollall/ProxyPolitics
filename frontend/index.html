@@ -13,149 +13,162 @@
             <p class="subtitle">各分野をNPCに委任して国を発展させよう</p>
         </header>
 
-        <div class="city-selector">
-            <div class="city-select-wrapper">
-                <label for="city-select">🏙️ 都市:</label>
-                <select id="city-select" class="city-dropdown">
-                    <option value="city_001">首都</option>
-                </select>
-                <button class="btn btn-small btn-add-city" onclick="showAddCityModal()">➕ 都市を追加</button>
-            </div>
-            <div id="city-info" class="city-info-text"></div>
+        <!-- ビュー切り替えボタン -->
+        <div class="view-switcher">
+            <button id="empire-view-btn" class="btn btn-view active" onclick="switchToEmpireView()">🏛️ 帝国</button>
+            <button id="city-view-btn" class="btn btn-view" onclick="switchToCityView()">🏙️ 都市</button>
         </div>
 
-        <div class="game-info">
-            <div class="turn-info">
-                <h2>ターン <span id="current-turn">1</span></h2>
-                <button id="next-turn-btn" class="btn btn-primary">次のターンへ</button>
-                <button id="reset-btn" class="btn btn-secondary">リセット</button>
+        <!-- 帝国ビュー -->
+        <div id="empire-view" class="empire-view">
+            <div class="game-info">
+                <div class="turn-info">
+                    <h2>ターン <span id="empire-turn">1</span></h2>
+                    <button id="empire-reset-btn" class="btn btn-secondary">リセット</button>
+                </div>
+
+                <!-- 帝国リソース -->
+                <div class="resources">
+                    <h3>帝国リソース</h3>
+                    <div class="resource-item-large">
+                        <span class="resource-label">💰 資金:</span>
+                        <span id="empire-gold" class="resource-value">1000</span>
+                    </div>
+                </div>
+
+                <!-- 都市リスト -->
+                <div class="cities-section">
+                    <h3>都市一覧</h3>
+                    <button class="btn btn-primary" onclick="showAddCityModal()">➕ 新しい都市を追加 (2000 gold)</button>
+                    <div id="cities-list" class="cities-list"></div>
+                </div>
+
+                <!-- NPC管理 -->
+                <div class="npc-section">
+                    <h3>NPCプール</h3>
+                    <button class="btn btn-primary" onclick="showRecruitModal()">➕ NPCを採用 (500 gold)</button>
+                    <div id="empire-npc-list" class="npc-list"></div>
+                </div>
             </div>
 
-            <div class="resources">
-                <h3>資源</h3>
-                <div class="resource-grid">
-                    <div class="resource-item">
-                        <span class="resource-label">💰 資金:</span>
-                        <span id="resource-gold" class="resource-value">1000</span>
-                    </div>
-                    <div class="resource-item">
-                        <span class="resource-label">👥 人口:</span>
-                        <span id="resource-population" class="resource-value">10000</span>
-                    </div>
-                    <div class="resource-item">
-                        <span class="resource-label">⚔️ 軍事力:</span>
-                        <span id="resource-military" class="resource-value">500</span>
-                    </div>
-                    <div class="resource-item">
-                        <span class="resource-label">🤝 外交影響力:</span>
-                        <span id="resource-diplomacy" class="resource-value">50</span>
+            <!-- イベントログ -->
+            <div class="event-log">
+                <h3>イベントログ</h3>
+                <div id="empire-event-list" class="event-list"></div>
+            </div>
+        </div>
+
+        <!-- 都市ビュー -->
+        <div id="city-view" class="city-view hidden">
+            <!-- 都市情報 -->
+            <div class="city-header">
+                <h2 id="city-name">首都</h2>
+                <button class="btn btn-small" onclick="switchToEmpireView()">← 帝国ビューに戻る</button>
+            </div>
+
+            <div class="game-info">
+                <div class="turn-info">
+                    <h2>ターン <span id="city-turn">1</span></h2>
+                    <button id="next-turn-btn" class="btn btn-primary">次のターンへ</button>
+                </div>
+
+                <!-- 都市リソース -->
+                <div class="resources">
+                    <h3>都市リソース</h3>
+                    <div class="resource-grid">
+                        <div class="resource-item">
+                            <span class="resource-label">💰 資金:</span>
+                            <span id="city-gold" class="resource-value">1000</span>
+                            <span class="resource-note">（帝国共有）</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-label">👥 人口:</span>
+                            <span id="resource-population" class="resource-value">10000</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-label">⚔️ 軍事力:</span>
+                            <span id="resource-military" class="resource-value">500</span>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-label">🤝 外交影響力:</span>
+                            <span id="resource-diplomacy" class="resource-value">50</span>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="main-content">
-            <div class="sectors-panel">
-                <h2>分野管理</h2>
-
+            <!-- 分野セクション -->
+            <div class="sectors">
                 <!-- 経済 -->
-                <div class="sector-card" data-sector="economy">
-                    <div class="sector-header">
-                        <h3>💰 経済</h3>
-                        <span class="sector-level">Lv.<span id="economy-level">1</span></span>
+                <div class="sector">
+                    <h3>💼 経済</h3>
+                    <div class="sector-info">
+                        <div>レベル: <span id="economy-level">1</span></div>
+                        <div class="progress-bar">
+                            <div id="economy-progress" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div>委任先: <span id="economy-delegate">なし</span></div>
                     </div>
-                    <div class="progress-bar">
-                        <div id="economy-progress" class="progress-fill" style="width: 0%"></div>
+                    <div class="sector-actions">
+                        <select id="economy-command" class="command-select">
+                            <option value="">コマンドを選択...</option>
+                        </select>
+                        <button class="btn btn-small" onclick="showDelegateModal('economy')">委任</button>
                     </div>
-                    <div class="delegation-info">
-                        <span>委任先: <span id="economy-delegate" class="delegate-name">なし</span></span>
-                        <button class="btn btn-small" onclick="showDelegationModal('economy')">変更</button>
-                    </div>
-                    <div class="sector-commands" id="economy-commands"></div>
                 </div>
 
                 <!-- 外交 -->
-                <div class="sector-card" data-sector="diplomacy">
-                    <div class="sector-header">
-                        <h3>🤝 外交</h3>
-                        <span class="sector-level">Lv.<span id="diplomacy-level">1</span></span>
+                <div class="sector">
+                    <h3>🤝 外交</h3>
+                    <div class="sector-info">
+                        <div>レベル: <span id="diplomacy-level">1</span></div>
+                        <div class="progress-bar">
+                            <div id="diplomacy-progress" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div>委任先: <span id="diplomacy-delegate">なし</span></div>
                     </div>
-                    <div class="progress-bar">
-                        <div id="diplomacy-progress" class="progress-fill" style="width: 0%"></div>
+                    <div class="sector-actions">
+                        <select id="diplomacy-command" class="command-select">
+                            <option value="">コマンドを選択...</option>
+                        </select>
+                        <button class="btn btn-small" onclick="showDelegateModal('diplomacy')">委任</button>
                     </div>
-                    <div class="delegation-info">
-                        <span>委任先: <span id="diplomacy-delegate" class="delegate-name">なし</span></span>
-                        <button class="btn btn-small" onclick="showDelegationModal('diplomacy')">変更</button>
-                    </div>
-                    <div class="sector-commands" id="diplomacy-commands"></div>
                 </div>
 
                 <!-- 軍事 -->
-                <div class="sector-card" data-sector="military">
-                    <div class="sector-header">
-                        <h3>⚔️ 軍事</h3>
-                        <span class="sector-level">Lv.<span id="military-level">1</span></span>
+                <div class="sector">
+                    <h3>⚔️ 軍事</h3>
+                    <div class="sector-info">
+                        <div>レベル: <span id="military-level">1</span></div>
+                        <div class="progress-bar">
+                            <div id="military-progress" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div>委任先: <span id="military-delegate">なし</span></div>
                     </div>
-                    <div class="progress-bar">
-                        <div id="military-progress" class="progress-fill" style="width: 0%"></div>
+                    <div class="sector-actions">
+                        <select id="military-command" class="command-select">
+                            <option value="">コマンドを選択...</option>
+                        </select>
+                        <button class="btn btn-small" onclick="showDelegateModal('military')">委任</button>
                     </div>
-                    <div class="delegation-info">
-                        <span>委任先: <span id="military-delegate" class="delegate-name">なし</span></span>
-                        <button class="btn btn-small" onclick="showDelegationModal('military')">変更</button>
-                    </div>
-                    <div class="sector-commands" id="military-commands"></div>
                 </div>
             </div>
 
-            <div class="side-panel">
-                <div class="event-log">
-                    <h3>イベントログ</h3>
-                    <div id="event-list" class="event-list"></div>
-                </div>
-
-                <div class="npc-list">
-                    <div class="npc-list-header">
-                        <h3>NPCリスト</h3>
-                        <button class="btn btn-small btn-recruit" onclick="showRecruitModal()">➕ 採用</button>
-                    </div>
-                    <div id="npc-list-container"></div>
-                </div>
+            <!-- イベントログ -->
+            <div class="event-log">
+                <h3>イベントログ</h3>
+                <div id="city-event-list" class="event-list"></div>
             </div>
         </div>
     </div>
 
     <!-- 委任モーダル -->
-    <div id="delegation-modal" class="modal">
+    <div id="delegate-modal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeDelegationModal()">&times;</span>
+            <span class="close" onclick="closeDelegateModal()">&times;</span>
             <h2>NPCに委任</h2>
-            <p id="modal-sector-name"></p>
-            <div id="npc-selection" class="npc-selection"></div>
-            <button class="btn btn-secondary" onclick="delegateToNPC(null)">委任解除</button>
-        </div>
-    </div>
-
-    <!-- NPC採用モーダル -->
-    <div id="recruit-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeRecruitModal()">&times;</span>
-            <h2>👔 NPC採用</h2>
-            <p class="recruit-info">新しいNPCを採用します（コスト: 💰500）</p>
-            <div class="recruit-options">
-                <h3>専門分野を選択:</h3>
-                <button class="btn recruit-option-btn" onclick="recruitNPC('economy')">
-                    💰 経済専門
-                </button>
-                <button class="btn recruit-option-btn" onclick="recruitNPC('diplomacy')">
-                    🤝 外交専門
-                </button>
-                <button class="btn recruit-option-btn" onclick="recruitNPC('military')">
-                    ⚔️ 軍事専門
-                </button>
-                <button class="btn recruit-option-btn" onclick="recruitNPC(null)">
-                    🎲 ランダム
-                </button>
-            </div>
+            <div id="npc-list"></div>
+            <button class="btn btn-secondary" onclick="closeDelegateModal()">キャンセル</button>
         </div>
     </div>
 
@@ -163,13 +176,32 @@
     <div id="add-city-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeAddCityModal()">&times;</span>
-            <h2>🏙️ 新しい都市を獲得</h2>
-            <p class="recruit-info">新しい都市を獲得します（コスト: 💰2000）</p>
-            <div class="city-name-input">
-                <label for="new-city-name">都市名:</label>
-                <input type="text" id="new-city-name" placeholder="新しい都市" maxlength="20">
+            <h2>新しい都市を追加</h2>
+            <p>コスト: 2000 gold</p>
+            <input type="text" id="new-city-name" placeholder="都市名を入力..." class="text-input">
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="addCity()">追加</button>
+                <button class="btn btn-secondary" onclick="closeAddCityModal()">キャンセル</button>
             </div>
-            <button class="btn btn-primary" onclick="addCity()">都市を獲得</button>
+        </div>
+    </div>
+
+    <!-- NPC採用モーダル -->
+    <div id="recruit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeRecruitModal()">&times;</span>
+            <h2>NPCを採用</h2>
+            <p>コスト: 500 gold</p>
+            <select id="recruit-specialty" class="select-input">
+                <option value="">ランダム</option>
+                <option value="economy">経済専門</option>
+                <option value="diplomacy">外交専門</option>
+                <option value="military">軍事専門</option>
+            </select>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="recruitNPC()">採用</button>
+                <button class="btn btn-secondary" onclick="closeRecruitModal()">キャンセル</button>
+            </div>
         </div>
     </div>
 
