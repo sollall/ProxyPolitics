@@ -100,6 +100,14 @@ function updateEmpireView() {
         });
     }
 
+    // 体制分類
+    if (gameState.regime) {
+        const regimeNameEl = document.getElementById('regime-name');
+        if (regimeNameEl) {
+            regimeNameEl.textContent = gameState.regime;
+        }
+    }
+
     // 都市リスト
     updateCitiesList();
 
@@ -420,6 +428,13 @@ function updateIdeology(axis, value) {
     .then(data => {
         if (data.success) {
             gameState = data.state;
+            // 体制分類を更新
+            if (gameState.regime) {
+                const regimeNameEl = document.getElementById('regime-name');
+                if (regimeNameEl) {
+                    regimeNameEl.textContent = gameState.regime;
+                }
+            }
         }
     });
 }

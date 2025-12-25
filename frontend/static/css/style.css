@@ -814,3 +814,26 @@ header h1 {
     color: #667eea;
     font-size: 1.1em;
 }
+
+.regime-display {
+    margin-top: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.regime-label {
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.regime-name {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+}

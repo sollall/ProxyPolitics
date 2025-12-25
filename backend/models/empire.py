@@ -99,12 +99,92 @@ class Empire:
             return True
         return False
 
+    def classify_regime(self) -> str:
+        """イデオロギー値に基づいて政治体制を分類"""
+        capital = self.ideology["capital"]
+        power = self.ideology["power"]
+        legitimacy = self.ideology["legitimacy"]
+        integration = self.ideology["integration"]
+
+        # 神権政治 (transcendent legitimacy が高い)
+        if legitimacy > 70:
+            if power < 30:
+                return "神権専制" if integration < 40 else "神権国家"
+            elif power > 70:
+                return "宗教自治連邦"
+            else:
+                return "立憲神権制"
+
+        # カリスマ的指導者体制 (charismatic legitimacy が高い)
+        if legitimacy < 30:
+            if power < 30:
+                if capital < 30:
+                    return "独裁社会主義" if integration > 60 else "全体主義"
+                else:
+                    return "啓蒙専制" if integration > 60 else "独裁制"
+            else:
+                return "カリスマ民主制"
+
+        # 以下、中庸な正統性の場合
+        # 極端な中央集権
+        if power < 20:
+            if capital < 30:
+                return "中央集権社会主義" if integration > 50 else "国家社会主義"
+            elif capital > 70:
+                return "権威主義資本主義"
+            else:
+                return "中央集権国家"
+
+        # 極端な分権
+        if power > 80:
+            if capital < 30:
+                return "アナルコ・サンディカリズム"
+            elif capital > 70:
+                return "アナルコ・キャピタリズム"
+            else:
+                return "自治都市連合"
+
+        # 中庸な権力分散度
+        if capital < 30:
+            # 集産主義
+            if integration < 30:
+                return "民族社会主義"
+            elif integration > 70:
+                return "国際社会主義"
+            else:
+                return "計画経済体制"
+        elif capital > 70:
+            # 市場経済
+            if power > 60:
+                if integration > 60:
+                    return "自由民主主義"
+                else:
+                    return "国民民主主義"
+            else:
+                if integration > 60:
+                    return "多文化資本主義"
+                else:
+                    return "国家資本主義"
+        else:
+            # 混合経済
+            if power > 60:
+                if integration > 60:
+                    return "社会民主主義"
+                else:
+                    return "国民国家"
+            else:
+                if integration > 60:
+                    return "多元的混合経済"
+                else:
+                    return "保守的混合経済"
+
     def to_dict(self) -> Dict:
         """辞書形式に変換"""
         return {
             "turn": self.turn,
             "resources": self.resources,  # 帝国レベルのリソース
             "ideology": self.ideology,    # 政治体制
+            "regime": self.classify_regime(),  # 体制分類
             "current_city_id": self.current_city_id,
             "cities": {city_id: city.to_dict() for city_id, city in self.cities.items()},
             "event_log": self.event_log[-10:]  # 最新10件のみ送信
