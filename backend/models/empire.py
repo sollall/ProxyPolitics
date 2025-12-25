@@ -18,6 +18,14 @@ class Empire:
             "gold": 1000,  # 資金は帝国全体で共有
         }
 
+        # 政治体制（0-100のスライダー値）
+        self.ideology = {
+            "capital": 50,      # 資本：0=集産、100=市場
+            "power": 50,        # 権力：0=集権、100=分散
+            "legitimacy": 50,   # 正統性：0=カリスマ、100=超越的
+            "integration": 50   # 統合：0=国粋、100=多元
+        }
+
         # 都市管理
         self.cities: Dict[str, City] = {}
         self._city_counter = 0
@@ -84,11 +92,19 @@ class Empire:
         self.turn += 1
         self.add_event(f"=== ターン {self.turn} 開始 ===")
 
+    def update_ideology(self, axis: str, value: int) -> bool:
+        """政治体制を更新"""
+        if axis in self.ideology and 0 <= value <= 100:
+            self.ideology[axis] = value
+            return True
+        return False
+
     def to_dict(self) -> Dict:
         """辞書形式に変換"""
         return {
             "turn": self.turn,
             "resources": self.resources,  # 帝国レベルのリソース
+            "ideology": self.ideology,    # 政治体制
             "current_city_id": self.current_city_id,
             "cities": {city_id: city.to_dict() for city_id, city in self.cities.items()},
             "event_log": self.event_log[-10:]  # 最新10件のみ送信

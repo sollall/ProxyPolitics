@@ -88,6 +88,18 @@ function updateEmpireView() {
     // 帝国リソース
     document.getElementById('empire-gold').textContent = gameState.resources.gold;
 
+    // 政治体制スライダー
+    if (gameState.ideology) {
+        ['capital', 'power', 'legitimacy', 'integration'].forEach(axis => {
+            const slider = document.getElementById(`ideology-${axis}`);
+            const valueDisplay = document.getElementById(`${axis}-value`);
+            if (slider && valueDisplay) {
+                slider.value = gameState.ideology[axis];
+                valueDisplay.textContent = gameState.ideology[axis];
+            }
+        });
+    }
+
     // 都市リスト
     updateCitiesList();
 
@@ -385,6 +397,29 @@ function resetGame() {
     .then(data => {
         if (data.success) {
             loadGameState();
+        }
+    });
+}
+
+// ==================== 政治体制 ====================
+
+function updateIdeology(axis, value) {
+    // スライダーの値表示を更新
+    document.getElementById(`${axis}-value`).textContent = value;
+
+    // サーバーに送信
+    fetch('/api/ideology', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            axis: axis,
+            value: parseInt(value)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
         }
     });
 }

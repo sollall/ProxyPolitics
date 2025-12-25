@@ -217,6 +217,33 @@ def recruit_npc():
     })
 
 
+@app.route('/api/ideology', methods=['POST'])
+def update_ideology():
+    """政治体制を更新"""
+    data = request.json
+    axis = data.get('axis')
+    value = data.get('value')
+
+    if not axis or value is None:
+        return jsonify({
+            "success": False,
+            "message": "軸と値が必要です"
+        }), 400
+
+    success = game_state.update_ideology(axis, int(value))
+
+    if success:
+        return jsonify({
+            "success": True,
+            "state": game_state.to_dict()
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "message": "無効な軸または値です"
+        }), 400
+
+
 @app.route('/api/reset', methods=['POST'])
 def reset_game():
     """ゲームをリセット"""
