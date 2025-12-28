@@ -22,7 +22,7 @@ class Empire:
         self.ideology = {
             "capital": 0,         # 資本：-2=集産、0=中道、2=市場
             "power": 0,           # 権力：-2=集権、0=中道、2=分散
-            "legitimacy": 0,      # 正統性：-2=カリスマ、0=中道、2=超越的
+            "legitimacy": 0,      # 正統性：-2=軍事的才覚、0=中道、2=超越的
             "power_subject": 0    # 権力主体：-2=議会、0=中道、2=個人
         }
 
@@ -118,20 +118,20 @@ class Empire:
             else:
                 return "立憲神権制" if power_subject <= 0 else "宗教君主制"
 
-        # カリスマ的指導者体制 (charismatic legitimacy が高い: -1以下)
+        # 軍事的才覚に基づく体制 (military legitimacy が高い: -1以下)
         if legitimacy <= -1:
             if power_subject >= 1:
                 # 個人支配が強い
                 if power <= -1:
-                    return "独裁制" if capital >= 0 else "独裁社会主義"
+                    return "軍事独裁" if capital >= 0 else "軍事社会主義"
                 else:
-                    return "カリスマ民主制"
+                    return "軍事民主制"
             else:
-                # 議会的
+                # 議会的・集団指導
                 if power <= -1:
-                    return "全体主義" if capital <= -1 else "権威主義"
+                    return "軍事政権" if capital <= -1 else "軍国主義"
                 else:
-                    return "革命評議会"
+                    return "軍事評議会"
 
         # 以下、中庸な正統性の場合
         # 極端な中央集権
