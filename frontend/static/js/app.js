@@ -88,6 +88,33 @@ function updateEmpireView() {
     // 帝国リソース
     document.getElementById('empire-gold').textContent = gameState.resources.gold;
 
+    // 政治体制スライダー
+    if (gameState.ideology) {
+        const axisMapping = {
+            'capital': 'capital',
+            'power': 'power',
+            'legitimacy': 'legitimacy',
+            'power_subject': 'power-subject'
+        };
+
+        Object.entries(axisMapping).forEach(([dataKey, htmlKey]) => {
+            const slider = document.getElementById(`ideology-${htmlKey}`);
+            const valueDisplay = document.getElementById(`${htmlKey}-value`);
+            if (slider && valueDisplay && gameState.ideology[dataKey] !== undefined) {
+                slider.value = gameState.ideology[dataKey];
+                valueDisplay.textContent = gameState.ideology[dataKey];
+            }
+        });
+    }
+
+    // 体制分類
+    if (gameState.regime) {
+        const regimeNameEl = document.getElementById('regime-name');
+        if (regimeNameEl) {
+            regimeNameEl.textContent = gameState.regime;
+        }
+    }
+
     // 都市リスト
     updateCitiesList();
 
@@ -385,6 +412,42 @@ function resetGame() {
     .then(data => {
         if (data.success) {
             loadGameState();
+        }
+    });
+}
+
+// ==================== 政治体制 ====================
+
+function updateIdeology(axis, value) {
+    // power_subject は HTML では power-subject として扱う
+    const htmlKey = axis === 'power_subject' ? 'power-subject' : axis;
+
+    // スライダーの値表示を更新
+    const valueDisplay = document.getElementById(`${htmlKey}-value`);
+    if (valueDisplay) {
+        valueDisplay.textContent = value;
+    }
+
+    // サーバーに送信
+    fetch('/api/ideology', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            axis: axis,
+            value: parseInt(value)
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            // 体制分類を更新
+            if (gameState.regime) {
+                const regimeNameEl = document.getElementById('regime-name');
+                if (regimeNameEl) {
+                    regimeNameEl.textContent = gameState.regime;
+                }
+            }
         }
     });
 }
