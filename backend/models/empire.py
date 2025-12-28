@@ -111,7 +111,10 @@ class Empire:
             if power <= -1:
                 return "神権君主制" if power_subject >= 1 else "神聖帝国"
             elif power >= 1:
-                return "宗教自治連邦"
+                if power_subject >= 1:
+                    return "封建制"
+                else:
+                    return "宗教自治連邦"
             else:
                 return "立憲神権制" if power_subject <= 0 else "宗教君主制"
 
@@ -134,7 +137,7 @@ class Empire:
         # 極端な中央集権
         if power == -2:
             if power_subject >= 1:
-                return "専制君主制" if capital >= 0 else "人民独裁"
+                return "帝国" if capital >= 0 else "人民独裁"
             else:
                 return "中央集権国家" if capital >= 0 else "中央計画経済"
 
@@ -145,7 +148,10 @@ class Empire:
             elif capital >= 1:
                 return "アナルコ・キャピタリズム"
             else:
-                return "自治都市連合"
+                if power_subject <= 0:
+                    return "連邦制"
+                else:
+                    return "自治都市連合"
 
         # 中庸な権力分散度
         if capital <= -1:
@@ -159,7 +165,7 @@ class Empire:
             if power >= 1:
                 # 分権的
                 if power_subject <= 0:
-                    return "議会民主制"
+                    return "連邦制"
                 else:
                     return "大統領制民主主義"
             else:
