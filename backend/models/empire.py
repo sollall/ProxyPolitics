@@ -23,7 +23,7 @@ class Empire:
             "capital": 0,         # 資本：-2=市場、0=中道、2=集産
             "power": 0,           # 権力：-2=分散、0=中道、2=集権
             "legitimacy": 0,      # 正統性：-2=軍事的才覚、0=中道、2=超越的
-            "power_subject": 0    # 権力主体：-2=議会、0=中道、2=個人
+            "power_subject": 0    # 権力主体：-2=個人、0=中道、2=議会
         }
 
         # 都市管理
@@ -109,18 +109,18 @@ class Empire:
         # 神権政治 (transcendent legitimacy が高い: 1以上)
         if legitimacy >= 1:
             if power >= 1:
-                return "神権君主制" if power_subject >= 1 else "神聖帝国"
+                return "神権君主制" if power_subject <= -1 else "神聖帝国"
             elif power <= -1:
-                if power_subject >= 1:
+                if power_subject <= -1:
                     return "封建制"
                 else:
                     return "宗教自治連邦"
             else:
-                return "立憲神権制" if power_subject <= 0 else "宗教君主制"
+                return "立憲神権制" if power_subject >= 0 else "宗教君主制"
 
         # 軍事的才覚に基づく体制 (military legitimacy が高い: -1以下)
         if legitimacy <= -1:
-            if power_subject >= 1:
+            if power_subject <= -1:
                 # 個人支配が強い
                 if power >= 1:
                     return "軍事独裁" if capital <= 0 else "軍事社会主義"
@@ -136,7 +136,7 @@ class Empire:
         # 以下、中庸な正統性の場合
         # 極端な中央集権
         if power == 2:
-            if power_subject >= 1:
+            if power_subject <= -1:
                 return "帝国" if capital <= 0 else "人民独裁"
             else:
                 return "中央集権国家" if capital <= 0 else "中央計画経済"
@@ -148,7 +148,7 @@ class Empire:
             elif capital <= -1:
                 return "アナルコ・キャピタリズム"
             else:
-                if power_subject <= 0:
+                if power_subject >= 0:
                     return "連邦制"
                 else:
                     return "自治都市連合"
@@ -156,7 +156,7 @@ class Empire:
         # 中庸な権力分散度
         if capital >= 1:
             # 集産主義
-            if power_subject >= 1:
+            if power_subject <= -1:
                 return "社会主義独裁"
             else:
                 return "評議会社会主義"
@@ -164,25 +164,25 @@ class Empire:
             # 市場経済
             if power <= -1:
                 # 分権的
-                if power_subject <= 0:
+                if power_subject >= 0:
                     return "連邦制"
                 else:
                     return "大統領制民主主義"
             else:
                 # 中央集権的
-                if power_subject >= 1:
+                if power_subject <= -1:
                     return "権威主義資本主義"
                 else:
                     return "官僚資本主義"
         else:
             # 混合経済
             if power <= -1:
-                if power_subject <= 0:
+                if power_subject >= 0:
                     return "議会制民主主義"
                 else:
                     return "共和制"
             else:
-                if power_subject >= 1:
+                if power_subject <= -1:
                     return "立憲君主制"
                 else:
                     return "議会制国家"
