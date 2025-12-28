@@ -20,10 +20,10 @@ class Empire:
 
         # 政治体制（0-100のスライダー値）
         self.ideology = {
-            "capital": 50,      # 資本：0=集産、100=市場
-            "power": 50,        # 権力：0=集権、100=分散
-            "legitimacy": 50,   # 正統性：0=カリスマ、100=超越的
-            "integration": 50   # 統合：0=国粋、100=多元
+            "capital": 50,         # 資本：0=集産、100=市場
+            "power": 50,           # 権力：0=集権、100=分散
+            "legitimacy": 50,      # 正統性：0=カリスマ、100=超越的
+            "power_subject": 50    # 権力主体：0=議会、100=個人
         }
 
         # 都市管理
@@ -104,36 +104,39 @@ class Empire:
         capital = self.ideology["capital"]
         power = self.ideology["power"]
         legitimacy = self.ideology["legitimacy"]
-        integration = self.ideology["integration"]
+        power_subject = self.ideology["power_subject"]
 
         # 神権政治 (transcendent legitimacy が高い)
         if legitimacy > 70:
             if power < 30:
-                return "神権専制" if integration < 40 else "神権国家"
+                return "神権君主制" if power_subject > 60 else "神聖帝国"
             elif power > 70:
                 return "宗教自治連邦"
             else:
-                return "立憲神権制"
+                return "立憲神権制" if power_subject < 40 else "宗教君主制"
 
         # カリスマ的指導者体制 (charismatic legitimacy が高い)
         if legitimacy < 30:
-            if power < 30:
-                if capital < 30:
-                    return "独裁社会主義" if integration > 60 else "全体主義"
+            if power_subject > 70:
+                # 個人支配が強い
+                if power < 30:
+                    return "独裁制" if capital > 50 else "独裁社会主義"
                 else:
-                    return "啓蒙専制" if integration > 60 else "独裁制"
+                    return "カリスマ民主制"
             else:
-                return "カリスマ民主制"
+                # 議会的
+                if power < 30:
+                    return "全体主義" if capital < 30 else "権威主義"
+                else:
+                    return "革命評議会"
 
         # 以下、中庸な正統性の場合
         # 極端な中央集権
         if power < 20:
-            if capital < 30:
-                return "中央集権社会主義" if integration > 50 else "国家社会主義"
-            elif capital > 70:
-                return "権威主義資本主義"
+            if power_subject > 70:
+                return "専制君主制" if capital > 50 else "人民独裁"
             else:
-                return "中央集権国家"
+                return "中央集権国家" if capital > 50 else "中央計画経済"
 
         # 極端な分権
         if power > 80:
@@ -147,36 +150,36 @@ class Empire:
         # 中庸な権力分散度
         if capital < 30:
             # 集産主義
-            if integration < 30:
-                return "民族社会主義"
-            elif integration > 70:
-                return "国際社会主義"
+            if power_subject > 60:
+                return "社会主義独裁"
             else:
-                return "計画経済体制"
+                return "評議会社会主義"
         elif capital > 70:
             # 市場経済
             if power > 60:
-                if integration > 60:
-                    return "自由民主主義"
+                # 分権的
+                if power_subject < 40:
+                    return "議会民主制"
                 else:
-                    return "国民民主主義"
+                    return "大統領制民主主義"
             else:
-                if integration > 60:
-                    return "多文化資本主義"
+                # 中央集権的
+                if power_subject > 60:
+                    return "権威主義資本主義"
                 else:
-                    return "国家資本主義"
+                    return "官僚資本主義"
         else:
             # 混合経済
             if power > 60:
-                if integration > 60:
-                    return "社会民主主義"
+                if power_subject < 40:
+                    return "議会制民主主義"
                 else:
-                    return "国民国家"
+                    return "共和制"
             else:
-                if integration > 60:
-                    return "多元的混合経済"
+                if power_subject > 60:
+                    return "立憲君主制"
                 else:
-                    return "保守的混合経済"
+                    return "議会制国家"
 
     def to_dict(self) -> Dict:
         """辞書形式に変換"""

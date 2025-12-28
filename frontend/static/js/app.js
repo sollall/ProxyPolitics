@@ -90,12 +90,19 @@ function updateEmpireView() {
 
     // 政治体制スライダー
     if (gameState.ideology) {
-        ['capital', 'power', 'legitimacy', 'integration'].forEach(axis => {
-            const slider = document.getElementById(`ideology-${axis}`);
-            const valueDisplay = document.getElementById(`${axis}-value`);
-            if (slider && valueDisplay) {
-                slider.value = gameState.ideology[axis];
-                valueDisplay.textContent = gameState.ideology[axis];
+        const axisMapping = {
+            'capital': 'capital',
+            'power': 'power',
+            'legitimacy': 'legitimacy',
+            'power_subject': 'power-subject'
+        };
+
+        Object.entries(axisMapping).forEach(([dataKey, htmlKey]) => {
+            const slider = document.getElementById(`ideology-${htmlKey}`);
+            const valueDisplay = document.getElementById(`${htmlKey}-value`);
+            if (slider && valueDisplay && gameState.ideology[dataKey] !== undefined) {
+                slider.value = gameState.ideology[dataKey];
+                valueDisplay.textContent = gameState.ideology[dataKey];
             }
         });
     }
