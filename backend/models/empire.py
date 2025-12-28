@@ -18,12 +18,12 @@ class Empire:
             "gold": 1000,  # 資金は帝国全体で共有
         }
 
-        # 政治体制（-2～2の5段階スライダー値）
+        # 政治体制（0～5の6段階スライダー値）
         self.ideology = {
-            "capital": -2,        # 資本：-2=市場、0=中道、2=集産
-            "power": -2,          # 権力：-2=分散、0=中道、2=集権
-            "legitimacy": -2,     # 正統性：-2=軍事的才覚、0=中道、2=超越的
-            "power_subject": -2   # 権力主体：-2=個人、0=中道、2=議会
+            "capital": 0,        # 資本：0=市場、2-3=中道、5=集産
+            "power": 0,          # 権力：0=分散、2-3=中道、5=集権
+            "legitimacy": 0,     # 正統性：0=軍事的才覚、2-3=中道、5=超越的
+            "power_subject": 0   # 権力主体：0=個人、2-3=中道、5=議会
         }
 
         # 都市管理
@@ -94,95 +94,95 @@ class Empire:
 
     def update_ideology(self, axis: str, value: int) -> bool:
         """政治体制を更新"""
-        if axis in self.ideology and -2 <= value <= 2:
+        if axis in self.ideology and 0 <= value <= 5:
             self.ideology[axis] = value
             return True
         return False
 
     def classify_regime(self) -> str:
-        """イデオロギー値に基づいて政治体制を分類（-2～2の5段階）"""
+        """イデオロギー値に基づいて政治体制を分類（0～5の6段階）"""
         capital = self.ideology["capital"]
         power = self.ideology["power"]
         legitimacy = self.ideology["legitimacy"]
         power_subject = self.ideology["power_subject"]
 
-        # 神権政治 (transcendent legitimacy が高い: 1以上)
-        if legitimacy >= 1:
-            if power >= 1:
-                return "神権君主制" if power_subject <= -1 else "神聖帝国"
-            elif power <= -1:
-                if power_subject <= -1:
+        # 神権政治 (transcendent legitimacy が高い: 4以上)
+        if legitimacy >= 4:
+            if power >= 4:
+                return "神権君主制" if power_subject <= 1 else "神聖帝国"
+            elif power <= 1:
+                if power_subject <= 1:
                     return "封建制"
                 else:
                     return "宗教自治連邦"
             else:
-                return "立憲神権制" if power_subject >= 0 else "宗教君主制"
+                return "立憲神権制" if power_subject >= 3 else "宗教君主制"
 
-        # 軍事的才覚に基づく体制 (military legitimacy が高い: -1以下)
-        if legitimacy <= -1:
-            if power_subject <= -1:
+        # 軍事的才覚に基づく体制 (military legitimacy が高い: 1以下)
+        if legitimacy <= 1:
+            if power_subject <= 1:
                 # 個人支配が強い
-                if power >= 1:
-                    return "軍事独裁" if capital <= 0 else "軍事社会主義"
+                if power >= 4:
+                    return "軍事独裁" if capital <= 2 else "軍事社会主義"
                 else:
                     return "軍事民主制"
             else:
                 # 議会的・集団指導
-                if power >= 1:
-                    return "軍事政権" if capital >= 1 else "軍国主義"
+                if power >= 4:
+                    return "軍事政権" if capital >= 4 else "軍国主義"
                 else:
                     return "軍事評議会"
 
         # 以下、中庸な正統性の場合
         # 極端な中央集権
-        if power == 2:
-            if power_subject <= -1:
-                return "帝国" if capital <= 0 else "人民独裁"
+        if power == 5:
+            if power_subject <= 1:
+                return "帝国" if capital <= 2 else "人民独裁"
             else:
-                return "中央集権国家" if capital <= 0 else "中央計画経済"
+                return "中央集権国家" if capital <= 2 else "中央計画経済"
 
         # 極端な分権
-        if power == -2:
-            if capital >= 1:
+        if power == 0:
+            if capital >= 4:
                 return "アナルコ・サンディカリズム"
-            elif capital <= -1:
+            elif capital <= 1:
                 return "アナルコ・キャピタリズム"
             else:
-                if power_subject >= 0:
+                if power_subject >= 3:
                     return "連邦制"
                 else:
                     return "自治都市連合"
 
         # 中庸な権力分散度
-        if capital >= 1:
+        if capital >= 4:
             # 集産主義
-            if power_subject <= -1:
+            if power_subject <= 1:
                 return "社会主義独裁"
             else:
                 return "評議会社会主義"
-        elif capital <= -1:
+        elif capital <= 1:
             # 市場経済
-            if power <= -1:
+            if power <= 1:
                 # 分権的
-                if power_subject >= 0:
+                if power_subject >= 3:
                     return "連邦制"
                 else:
                     return "大統領制民主主義"
             else:
                 # 中央集権的
-                if power_subject <= -1:
+                if power_subject <= 1:
                     return "権威主義資本主義"
                 else:
                     return "官僚資本主義"
         else:
             # 混合経済
-            if power <= -1:
-                if power_subject >= 0:
+            if power <= 1:
+                if power_subject >= 3:
                     return "議会制民主主義"
                 else:
                     return "共和制"
             else:
-                if power_subject <= -1:
+                if power_subject <= 1:
                     return "立憲君主制"
                 else:
                     return "議会制国家"
