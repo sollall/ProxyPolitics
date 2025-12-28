@@ -419,8 +419,14 @@ function resetGame() {
 // ==================== 政治体制 ====================
 
 function updateIdeology(axis, value) {
+    // power_subject は HTML では power-subject として扱う
+    const htmlKey = axis === 'power_subject' ? 'power-subject' : axis;
+
     // スライダーの値表示を更新
-    document.getElementById(`${axis}-value`).textContent = value;
+    const valueDisplay = document.getElementById(`${htmlKey}-value`);
+    if (valueDisplay) {
+        valueDisplay.textContent = value;
+    }
 
     // サーバーに送信
     fetch('/api/ideology', {
