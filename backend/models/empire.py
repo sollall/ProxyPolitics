@@ -111,10 +111,7 @@ class Empire:
             if power >= 4:
                 return "神権君主制" if power_subject <= 1 else "神聖帝国"
             elif power <= 1:
-                if power_subject <= 1:
-                    return "封建制"
-                else:
-                    return "宗教自治連邦"
+                return "宗教自治連邦"
             else:
                 return "立憲神権制" if power_subject >= 3 else "宗教君主制"
 
@@ -124,6 +121,8 @@ class Empire:
                 # 個人支配が強い
                 if power >= 4:
                     return "軍事独裁" if capital <= 2 else "軍事社会主義"
+                elif power <= 1:
+                    return "封建制"
                 else:
                     return "軍事民主制"
             else:
@@ -171,7 +170,11 @@ class Empire:
             else:
                 # 中央集権的
                 if power_subject <= 1:
-                    return "権威主義資本主義"
+                    # 個人支配かつ中央集権的な市場経済
+                    if power >= 4:
+                        return "権威主義資本主義"
+                    else:
+                        return "重商主義"
                 else:
                     return "官僚資本主義"
         else:
