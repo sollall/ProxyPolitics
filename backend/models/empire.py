@@ -120,7 +120,7 @@ class Empire:
             if power_subject <= 1:
                 # 個人支配が強い
                 if power >= 4:
-                    return "郡県制" if capital <= 2 else "軍事社会主義"
+                    return "僭主国家" if capital <= 2 else "軍事社会主義"
                 elif power <= 1:
                     return "封建制"
                 else:
