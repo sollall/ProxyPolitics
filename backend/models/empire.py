@@ -129,6 +129,8 @@ class Empire:
                 # 議会的・集団指導
                 if power >= 4:
                     return "全体主義" if capital >= 4 else "カリスマ国家"
+                elif power <= 1:
+                    return "貴族制"
                 else:
                     return "革命評議会"
 
