@@ -124,7 +124,11 @@ class Empire:
                 elif power <= 1:
                     return "封建制"
                 else:
-                    return "幕藩体制"
+                    # 中程度の集権
+                    if capital >= 4:
+                        return "統制経済"
+                    else:
+                        return "幕藩体制"
             else:
                 # 議会的・集団指導
                 if power >= 4:
