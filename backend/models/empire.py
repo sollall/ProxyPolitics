@@ -120,7 +120,7 @@ class Empire:
             if power_subject <= 1:
                 # 個人支配が強い
                 if power >= 4:
-                    return "郡県制" if capital <= 2 else "全体主義"
+                    return "帝国" if capital <= 2 else "全体主義"
                 elif power <= 1:
                     return "封建制"
                 else:
@@ -142,7 +142,7 @@ class Empire:
         # 極端な中央集権
         if power == 5:
             if power_subject <= 1:
-                return "帝国" if capital <= 2 else "人民独裁"
+                return "郡県制" if capital <= 2 else "人民独裁"
             else:
                 return "中央集権国家" if capital <= 2 else "中央計画経済"
 
