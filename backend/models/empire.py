@@ -108,11 +108,30 @@ class Empire:
 
         # 権力軸に基づいて基本政体を決定
         if power <= 1:
-            base_regime = "封建制"
+            power_name = "封建制"
         elif power <= 3:
-            base_regime = "幕藩制"
+            power_name = "幕藩制"
         else:
-            base_regime = "郡県制"
+            power_name = "郡県制"
+
+        # 正統性軸に基づいて名前を決定
+        if legitimacy <= 1:
+            legitimacy_name = "個人"
+        elif legitimacy <= 3:
+            legitimacy_name = "法律"
+        else:
+            legitimacy_name = "超越"
+
+        # 権力主体軸に基づいて名前を決定
+        if power_subject <= 1:
+            power_subject_name = "専制"
+        elif power_subject <= 3:
+            power_subject_name = "貴族制"
+        else:
+            power_subject_name = "共和制"
+
+        # 基本政体名を組み立て
+        base_regime = f"{power_name}{legitimacy_name}{power_subject_name}"
 
         # 市場軸に基づいて接頭辞を付ける
         if capital <= 1:
