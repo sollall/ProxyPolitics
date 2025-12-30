@@ -147,7 +147,7 @@ class Empire:
                 return "中央集権国家" if capital <= 2 else "中央計画経済"
 
         # 極端な分権
-        if power == 0:
+        if power <= 1:
             if capital >= 4:
                 return "アナルコ・サンディカリズム"
             elif capital <= 1:
