@@ -125,6 +125,16 @@ function updateEmpireView() {
         });
     }
 
+    // 権力政策チェックボックス
+    if (gameState.power_policies) {
+        Object.entries(gameState.power_policies).forEach(([policy, isActive]) => {
+            const checkbox = document.getElementById(`power-policy-${policy}`);
+            if (checkbox) {
+                checkbox.checked = isActive;
+            }
+        });
+    }
+
     // 都市リスト
     updateCitiesList();
 
@@ -459,6 +469,24 @@ function updateIdeology(axis, value) {
 function toggleMarketPolicy(policy) {
     // サーバーに送信
     fetch('/api/market_policy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            policy: policy
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+        }
+    });
+}
+
+function togglePowerPolicy(policy) {
+    // サーバーに送信
+    fetch('/api/power_policy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

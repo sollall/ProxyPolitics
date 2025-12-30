@@ -867,3 +867,33 @@ header h1 {
     margin-right: 8px;
     cursor: pointer;
 }
+
+.power-policies {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.power-policies h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.power-policies label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.power-policies label:hover {
+    background-color: #e9ecef;
+}
+
+.power-policies input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}

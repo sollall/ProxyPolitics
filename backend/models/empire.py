@@ -35,6 +35,15 @@ class Empire:
             "welfare_policy": False     # 福祉政策
         }
 
+        # 権力政策（採用されている政策の数がpower値になる）
+        self.power_policies = {
+            "hereditary_ban": False,        # 世襲の禁止
+            "tax_deprivation": False,       # 徴税権のはく奪
+            "disband_local_army": False,    # 現地の軍隊を解散
+            "appointment_authority": False, # 任免権
+            "recruitment_exam": False       # 登用試験
+        }
+
         # 都市管理
         self.cities: Dict[str, City] = {}
         self._city_counter = 0
@@ -102,9 +111,9 @@ class Empire:
         self.add_event(f"=== ターン {self.turn} 開始 ===")
 
     def update_ideology(self, axis: str, value: int) -> bool:
-        """政治体制を更新（capitalは政策で自動計算されるため更新不可）"""
-        if axis == "capital":
-            return False  # capitalは政策で自動計算
+        """政治体制を更新（capital・powerは政策で自動計算されるため更新不可）"""
+        if axis in ["capital", "power"]:
+            return False  # capital・powerは政策で自動計算
         if axis in self.ideology and 0 <= value <= 5:
             self.ideology[axis] = value
             return True
@@ -116,6 +125,15 @@ class Empire:
             self.market_policies[policy] = not self.market_policies[policy]
             # capital値を再計算
             self.ideology["capital"] = sum(1 for p in self.market_policies.values() if p)
+            return True
+        return False
+
+    def toggle_power_policy(self, policy: str) -> bool:
+        """権力政策を切り替え"""
+        if policy in self.power_policies:
+            self.power_policies[policy] = not self.power_policies[policy]
+            # power値を再計算
+            self.ideology["power"] = sum(1 for p in self.power_policies.values() if p)
             return True
         return False
 
@@ -168,6 +186,7 @@ class Empire:
             "resources": self.resources,  # 帝国レベルのリソース
             "ideology": self.ideology,    # 政治体制
             "market_policies": self.market_policies,  # 市場政策
+            "power_policies": self.power_policies,    # 権力政策
             "regime": self.classify_regime(),  # 体制分類
             "current_city_id": self.current_city_id,
             "cities": {city_id: city.to_dict() for city_id, city in self.cities.items()},

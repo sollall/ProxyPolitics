@@ -63,11 +63,21 @@
                     <div class="ideology-slider">
                         <div class="ideology-labels">
                             <span class="ideology-label-left">分散</span>
-                            <span class="ideology-label-center">権力</span>
+                            <span class="ideology-label-center">権力（政策で自動計算）</span>
                             <span class="ideology-label-right">集権</span>
                         </div>
-                        <input type="range" id="ideology-power" class="slider" min="0" max="5" value="0" step="1" oninput="updateIdeology('power', this.value)">
+                        <input type="range" id="ideology-power" class="slider" min="0" max="5" value="0" step="1" disabled>
                         <div class="ideology-value" id="power-value">0</div>
+                    </div>
+
+                    <!-- 権力政策 -->
+                    <div class="power-policies">
+                        <h4>⚔️ 権力政策（採用数が権力値になります）</h4>
+                        <label><input type="checkbox" id="power-policy-hereditary_ban" onchange="togglePowerPolicy('hereditary_ban')"> 世襲の禁止</label>
+                        <label><input type="checkbox" id="power-policy-tax_deprivation" onchange="togglePowerPolicy('tax_deprivation')"> 徴税権のはく奪</label>
+                        <label><input type="checkbox" id="power-policy-disband_local_army" onchange="togglePowerPolicy('disband_local_army')"> 現地の軍隊を解散</label>
+                        <label><input type="checkbox" id="power-policy-appointment_authority" onchange="togglePowerPolicy('appointment_authority')"> 任免権</label>
+                        <label><input type="checkbox" id="power-policy-recruitment_exam" onchange="togglePowerPolicy('recruitment_exam')"> 登用試験</label>
                     </div>
 
                     <div class="ideology-slider">

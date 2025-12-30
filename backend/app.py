@@ -270,6 +270,32 @@ def toggle_market_policy():
         }), 400
 
 
+@app.route('/api/power_policy', methods=['POST'])
+def toggle_power_policy():
+    """権力政策を切り替え"""
+    data = request.json
+    policy = data.get('policy')
+
+    if not policy:
+        return jsonify({
+            "success": False,
+            "message": "政策名が必要です"
+        }), 400
+
+    success = game_state.toggle_power_policy(policy)
+
+    if success:
+        return jsonify({
+            "success": True,
+            "state": game_state.to_dict()
+        })
+    else:
+        return jsonify({
+            "success": False,
+            "message": "無効な政策名です"
+        }), 400
+
+
 @app.route('/api/reset', methods=['POST'])
 def reset_game():
     """ゲームをリセット"""
