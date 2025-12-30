@@ -106,99 +106,13 @@ class Empire:
         legitimacy = self.ideology["legitimacy"]
         power_subject = self.ideology["power_subject"]
 
-        # 基本政体を決定
-        base_regime = ""
-
-        # 神権政治 (transcendent legitimacy が高い: 4以上)
-        if legitimacy >= 4:
-            if power >= 4:
-                base_regime = "神権君主制" if power_subject <= 1 else "神聖帝国"
-            elif power <= 1:
-                base_regime = "宗教自治連邦"
-            else:
-                base_regime = "立憲神権制" if power_subject >= 3 else "宗教君主制"
-
-        # カリスマに基づく体制 (charisma が高い: 1以下)
-        elif legitimacy <= 1:
-            if power_subject <= 1:
-                # 個人支配が強い
-                if power >= 4:
-                    base_regime = "帝国" if capital <= 2 else "全体主義"
-                elif power <= 1:
-                    base_regime = "封建制"
-                else:
-                    # 中程度の集権
-                    if capital >= 4:
-                        base_regime = "統制経済"
-                    else:
-                        base_regime = "幕藩体制"
-            else:
-                # 議会的・集団指導
-                if power >= 4:
-                    base_regime = "全体主義" if capital >= 4 else "カリスマ国家"
-                elif power <= 1:
-                    base_regime = "貴族制"
-                else:
-                    base_regime = "革命評議会"
-
-        # 以下、中庸な正統性の場合
+        # 権力軸に基づいて基本政体を決定
+        if power <= 1:
+            base_regime = "封建制"
+        elif power <= 3:
+            base_regime = "幕藩制"
         else:
-            # 極端な中央集権
-            if power == 5:
-                if power_subject <= 1:
-                    base_regime = "郡県制" if capital <= 2 else "人民独裁"
-                else:
-                    base_regime = "中央集権国家" if capital <= 2 else "中央計画経済"
-
-            # 極端な分権
-            elif power <= 1:
-                if capital >= 4:
-                    base_regime = "アナルコ・サンディカリズム"
-                elif capital <= 1:
-                    base_regime = "アナルコ・キャピタリズム"
-                else:
-                    if power_subject >= 3:
-                        base_regime = "連邦制"
-                    else:
-                        base_regime = "自治都市連合"
-
-            # 中庸な権力分散度
-            elif capital >= 4:
-                # 集産主義
-                if power_subject <= 1:
-                    base_regime = "社会主義独裁"
-                else:
-                    base_regime = "評議会社会主義"
-            elif capital <= 1:
-                # 市場経済
-                if power <= 1:
-                    # 分権的
-                    if power_subject >= 3:
-                        base_regime = "連邦制"
-                    else:
-                        base_regime = "大統領制民主主義"
-                else:
-                    # 中央集権的
-                    if power_subject <= 1:
-                        # 個人支配かつ中央集権的な市場経済
-                        if power >= 4:
-                            base_regime = "権威主義資本主義"
-                        else:
-                            base_regime = "重商主義"
-                    else:
-                        base_regime = "官僚資本主義"
-            else:
-                # 混合経済
-                if power <= 1:
-                    if power_subject >= 3:
-                        base_regime = "議会制民主主義"
-                    else:
-                        base_regime = "共和制"
-                else:
-                    if power_subject <= 1:
-                        base_regime = "立憲君主制"
-                    else:
-                        base_regime = "議会制国家"
+            base_regime = "郡県制"
 
         # 市場軸に基づいて接頭辞を付ける
         if capital <= 1:
