@@ -20,10 +20,19 @@ class Empire:
 
         # 政治体制（0～5の6段階スライダー値）
         self.ideology = {
-            "capital": 0,        # 市場：0=放任、2-3=中道、5=介入
+            "capital": 0,        # 市場：0=放任、2-3=中道、5=介入（政策数で自動計算）
             "power": 0,          # 権力：0=分散、2-3=中道、5=集権
             "legitimacy": 0,     # 正統性：0=カリスマ、2-3=中道、5=超越的
             "power_subject": 0   # 権力主体：0=個人、2-3=中道、5=議会
+        }
+
+        # 市場政策（採用されている政策の数がcapital値になる）
+        self.market_policies = {
+            "coin_minting": False,      # 貨幣の鋳造
+            "monopoly_system": False,   # 専売制
+            "price_control": False,     # 価格統制
+            "capital_control": False,   # 資本移動の制限
+            "welfare_policy": False     # 福祉政策
         }
 
         # 都市管理
@@ -93,9 +102,20 @@ class Empire:
         self.add_event(f"=== ターン {self.turn} 開始 ===")
 
     def update_ideology(self, axis: str, value: int) -> bool:
-        """政治体制を更新"""
+        """政治体制を更新（capitalは政策で自動計算されるため更新不可）"""
+        if axis == "capital":
+            return False  # capitalは政策で自動計算
         if axis in self.ideology and 0 <= value <= 5:
             self.ideology[axis] = value
+            return True
+        return False
+
+    def toggle_market_policy(self, policy: str) -> bool:
+        """市場政策を切り替え"""
+        if policy in self.market_policies:
+            self.market_policies[policy] = not self.market_policies[policy]
+            # capital値を再計算
+            self.ideology["capital"] = sum(1 for p in self.market_policies.values() if p)
             return True
         return False
 
@@ -147,6 +167,7 @@ class Empire:
             "turn": self.turn,
             "resources": self.resources,  # 帝国レベルのリソース
             "ideology": self.ideology,    # 政治体制
+            "market_policies": self.market_policies,  # 市場政策
             "regime": self.classify_regime(),  # 体制分類
             "current_city_id": self.current_city_id,
             "cities": {city_id: city.to_dict() for city_id, city in self.cities.items()},

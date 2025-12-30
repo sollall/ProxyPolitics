@@ -43,11 +43,21 @@
                     <div class="ideology-slider">
                         <div class="ideology-labels">
                             <span class="ideology-label-left">放任</span>
-                            <span class="ideology-label-center">市場</span>
+                            <span class="ideology-label-center">市場（政策で自動計算）</span>
                             <span class="ideology-label-right">介入</span>
                         </div>
-                        <input type="range" id="ideology-capital" class="slider" min="0" max="5" value="0" step="1" oninput="updateIdeology('capital', this.value)">
+                        <input type="range" id="ideology-capital" class="slider" min="0" max="5" value="0" step="1" disabled>
                         <div class="ideology-value" id="capital-value">0</div>
+                    </div>
+
+                    <!-- 市場政策 -->
+                    <div class="market-policies">
+                        <h4>📊 市場政策（採用数が市場値になります）</h4>
+                        <label><input type="checkbox" id="policy-coin_minting" onchange="toggleMarketPolicy('coin_minting')"> 貨幣の鋳造</label>
+                        <label><input type="checkbox" id="policy-monopoly_system" onchange="toggleMarketPolicy('monopoly_system')"> 専売制</label>
+                        <label><input type="checkbox" id="policy-price_control" onchange="toggleMarketPolicy('price_control')"> 価格統制</label>
+                        <label><input type="checkbox" id="policy-capital_control" onchange="toggleMarketPolicy('capital_control')"> 資本移動の制限</label>
+                        <label><input type="checkbox" id="policy-welfare_policy" onchange="toggleMarketPolicy('welfare_policy')"> 福祉政策</label>
                     </div>
 
                     <div class="ideology-slider">
