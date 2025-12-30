@@ -20,7 +20,7 @@ class Empire:
 
         # 政治体制（0～5の6段階スライダー値）
         self.ideology = {
-            "capital": 0,        # 資本：0=市場、2-3=中道、5=集産
+            "capital": 0,        # 市場：0=放任、2-3=中道、5=介入
             "power": 0,          # 権力：0=分散、2-3=中道、5=集権
             "legitimacy": 0,     # 正統性：0=カリスマ、2-3=中道、5=超越的
             "power_subject": 0   # 権力主体：0=個人、2-3=中道、5=議会
@@ -120,7 +120,7 @@ class Empire:
             if power_subject <= 1:
                 # 個人支配が強い
                 if power >= 4:
-                    return "郡県制" if capital <= 2 else "カリスマ社会主義"
+                    return "郡県制" if capital <= 2 else "全体主義"
                 elif power <= 1:
                     return "封建制"
                 else:
