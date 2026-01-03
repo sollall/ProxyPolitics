@@ -144,40 +144,59 @@ class Empire:
         legitimacy = self.ideology["legitimacy"]
         power_subject = self.ideology["power_subject"]
 
-        # 権力軸に基づいて基本政体を決定
+        # 封建制（権力 0-1）の場合、具体的な政体名を使用
         if power <= 1:
-            power_name = "封建制"
-        elif power <= 3:
-            power_name = "幕藩制"
+            if legitimacy <= 1:  # 個人
+                if power_subject <= 1:
+                    regime_name = "封建君主制"
+                elif power_subject <= 3:
+                    regime_name = "諸侯連合"
+                else:
+                    regime_name = "都市同盟"
+            elif legitimacy <= 3:  # 法律
+                if power_subject <= 1:
+                    regime_name = "契約君主制"
+                elif power_subject <= 3:
+                    regime_name = "身分制議会"
+                else:
+                    regime_name = "自由都市連合"
+            else:  # 超越
+                if power_subject <= 1:
+                    regime_name = "神授王権"
+                elif power_subject <= 3:
+                    regime_name = "聖職貴族制"
+                else:
+                    regime_name = "聖都連合"
         else:
-            power_name = "郡県制"
+            # 幕藩制・郡県制は既存のシステムを使用
+            if power <= 3:
+                power_name = "幕藩制"
+            else:
+                power_name = "郡県制"
 
-        # 正統性軸に基づいて名前を決定
-        if legitimacy <= 1:
-            legitimacy_name = "個人"
-        elif legitimacy <= 3:
-            legitimacy_name = "法律"
-        else:
-            legitimacy_name = "超越"
+            if legitimacy <= 1:
+                legitimacy_name = "個人"
+            elif legitimacy <= 3:
+                legitimacy_name = "法律"
+            else:
+                legitimacy_name = "超越"
 
-        # 権力主体軸に基づいて名前を決定
-        if power_subject <= 1:
-            power_subject_name = "専制"
-        elif power_subject <= 3:
-            power_subject_name = "貴族制"
-        else:
-            power_subject_name = "共和制"
+            if power_subject <= 1:
+                power_subject_name = "専制"
+            elif power_subject <= 3:
+                power_subject_name = "貴族制"
+            else:
+                power_subject_name = "共和制"
 
-        # 基本政体名を組み立て
-        base_regime = f"{power_name}{legitimacy_name}{power_subject_name}"
+            regime_name = f"{power_name}{legitimacy_name}{power_subject_name}"
 
         # 市場軸に基づいて接頭辞を付ける
         if capital <= 1:
-            return f"自由貿易{base_regime}"
+            return f"自由貿易{regime_name}"
         elif capital >= 4:
-            return f"国家統制{base_regime}"
+            return f"国家統制{regime_name}"
         else:
-            return base_regime
+            return regime_name
 
     def to_dict(self) -> Dict:
         """辞書形式に変換"""
