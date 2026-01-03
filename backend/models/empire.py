@@ -191,22 +191,28 @@ class Empire:
                 else:
                     regime_name = "神聖共和国"
         else:
-            # 幕藩制（権力 2-3）は既存のシステムを使用
-            if legitimacy <= 1:
-                legitimacy_name = "個人"
-            elif legitimacy <= 3:
-                legitimacy_name = "法律"
-            else:
-                legitimacy_name = "超越"
-
-            if power_subject <= 1:
-                power_subject_name = "専制"
-            elif power_subject <= 3:
-                power_subject_name = "貴族制"
-            else:
-                power_subject_name = "共和制"
-
-            regime_name = f"幕藩制{legitimacy_name}{power_subject_name}"
+            # 総統制（権力 2-3）の場合、具体的な政体名を使用
+            if legitimacy <= 1:  # 個人
+                if power_subject <= 1:
+                    regime_name = "軍事独裁"
+                elif power_subject <= 3:
+                    regime_name = "軍閥連合"
+                else:
+                    regime_name = "軍政共和制"
+            elif legitimacy <= 3:  # 法律
+                if power_subject <= 1:
+                    regime_name = "帝政"
+                elif power_subject <= 3:
+                    regime_name = "連邦君主制"
+                else:
+                    regime_name = "大統領制"
+            else:  # 超越
+                if power_subject <= 1:
+                    regime_name = "カリフ制"
+                elif power_subject <= 3:
+                    regime_name = "宗教連邦"
+                else:
+                    regime_name = "宗教共和制"
 
         # 市場軸に基づいて接頭辞を付ける
         if capital <= 1:
