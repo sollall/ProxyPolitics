@@ -897,3 +897,62 @@ header h1 {
     margin-right: 8px;
     cursor: pointer;
 }
+
+/* 帝国地図 */
+.map-section {
+    background: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.map-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.empire-map-svg {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    background: #f0f8ff;
+}
+
+/* 地図上の都市マーカー */
+.map-city {
+    transition: all 0.3s ease;
+}
+
+.map-city:hover .city-marker-outer {
+    opacity: 0.6 !important;
+    r: 30;
+}
+
+.map-city:hover .city-marker-inner {
+    fill: #764ba2;
+    transform: scale(1.2);
+}
+
+.city-marker-outer {
+    transition: all 0.3s ease;
+}
+
+.city-marker-inner {
+    transition: all 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.city-label {
+    font-size: 14px;
+    font-weight: bold;
+    fill: #333;
+    pointer-events: none;
+}
+
+.city-population {
+    font-size: 11px;
+    fill: #666;
+    pointer-events: none;
+}

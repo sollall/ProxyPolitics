@@ -36,6 +36,28 @@
                     </div>
                 </div>
 
+                <!-- 帝国地図 -->
+                <div class="map-section">
+                    <h3>🗺️ 帝国地図</h3>
+                    <svg id="empire-map" viewBox="0 0 800 500" class="empire-map-svg">
+                        <!-- 背景 -->
+                        <rect width="800" height="500" fill="#e8f4f8" />
+
+                        <!-- 地域エリア（装飾） -->
+                        <g id="map-regions">
+                            <!-- 中央部 -->
+                            <ellipse cx="400" cy="250" rx="300" ry="200" fill="#d4e8d4" opacity="0.6" />
+                            <!-- 北部 -->
+                            <ellipse cx="400" cy="120" rx="200" ry="80" fill="#c8dcc8" opacity="0.5" />
+                            <!-- 南部 -->
+                            <ellipse cx="400" cy="380" rx="250" ry="100" fill="#d4e8d4" opacity="0.5" />
+                        </g>
+
+                        <!-- 都市マーカーがここに動的に追加される -->
+                        <g id="map-cities"></g>
+                    </svg>
+                </div>
+
                 <!-- 政治体制 -->
                 <div class="ideology-section">
                     <h3>⚖️ 政治体制</h3>

@@ -138,6 +138,9 @@ function updateEmpireView() {
     // 都市リスト
     updateCitiesList();
 
+    // 地図を更新
+    updateEmpireMap();
+
     // NPC一覧
     updateEmpireNPCList();
 
@@ -165,6 +168,78 @@ function updateCitiesList() {
 
         citiesList.appendChild(cityCard);
     }
+}
+
+function updateEmpireMap() {
+    const mapContainer = document.getElementById('map-cities');
+    mapContainer.innerHTML = '';
+
+    const cityEntries = Object.entries(gameState.cities);
+    const numCities = cityEntries.length;
+
+    cityEntries.forEach(([cityId, city], index) => {
+        // 都市の位置を計算（円形に配置）
+        let x, y;
+        if (numCities === 1) {
+            // 首都のみの場合は中央に配置
+            x = 400;
+            y = 250;
+        } else {
+            // 複数の都市は円形に配置
+            const angle = (index / numCities) * 2 * Math.PI - Math.PI / 2;
+            const radius = 180;
+            x = 400 + Math.cos(angle) * radius;
+            y = 250 + Math.sin(angle) * radius;
+        }
+
+        // 都市グループを作成
+        const cityGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        cityGroup.setAttribute('class', 'map-city');
+        cityGroup.setAttribute('data-city-id', cityId);
+        cityGroup.style.cursor = 'pointer';
+
+        // クリックイベント
+        cityGroup.onclick = () => switchToCityView(cityId);
+
+        // 都市マーカー（外側の円）
+        const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        outerCircle.setAttribute('cx', x);
+        outerCircle.setAttribute('cy', y);
+        outerCircle.setAttribute('r', '25');
+        outerCircle.setAttribute('fill', '#667eea');
+        outerCircle.setAttribute('opacity', '0.3');
+        outerCircle.setAttribute('class', 'city-marker-outer');
+
+        // 都市マーカー（内側の円）
+        const innerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        innerCircle.setAttribute('cx', x);
+        innerCircle.setAttribute('cy', y);
+        innerCircle.setAttribute('r', '15');
+        innerCircle.setAttribute('fill', '#667eea');
+        innerCircle.setAttribute('class', 'city-marker-inner');
+
+        // 都市名テキスト
+        const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        text.setAttribute('x', x);
+        text.setAttribute('y', y + 40);
+        text.setAttribute('text-anchor', 'middle');
+        text.setAttribute('class', 'city-label');
+        text.textContent = city.name;
+
+        // 人口表示
+        const popText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        popText.setAttribute('x', x);
+        popText.setAttribute('y', y + 55);
+        popText.setAttribute('text-anchor', 'middle');
+        popText.setAttribute('class', 'city-population');
+        popText.textContent = `👥 ${city.resources.population}`;
+
+        cityGroup.appendChild(outerCircle);
+        cityGroup.appendChild(innerCircle);
+        cityGroup.appendChild(text);
+        cityGroup.appendChild(popText);
+        mapContainer.appendChild(cityGroup);
+    });
 }
 
 function updateEmpireNPCList() {
