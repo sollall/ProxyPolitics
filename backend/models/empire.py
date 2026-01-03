@@ -191,28 +191,28 @@ class Empire:
                 else:
                     regime_name = "神聖共和国"
         else:
-            # 総統制（権力 2-3）の場合、具体的な政体名を使用
+            # 総督制（権力 2-3）の場合、具体的な政体名を使用
             if legitimacy <= 1:  # 個人
                 if power_subject <= 1:
-                    regime_name = "軍事独裁"
+                    regime_name = "軍管区制"
                 elif power_subject <= 3:
-                    regime_name = "軍閥連合"
+                    regime_name = "総督貴族制"
                 else:
-                    regime_name = "軍政共和制"
+                    regime_name = "総督共和制"
             elif legitimacy <= 3:  # 法律
                 if power_subject <= 1:
-                    regime_name = "帝政"
+                    regime_name = "帝国総督制"
                 elif power_subject <= 3:
-                    regime_name = "連邦君主制"
+                    regime_name = "連邦制"
                 else:
-                    regime_name = "大統領制"
+                    regime_name = "自治共和制"
             else:  # 超越
                 if power_subject <= 1:
-                    regime_name = "カリフ制"
+                    regime_name = "教皇領"
                 elif power_subject <= 3:
-                    regime_name = "宗教連邦"
+                    regime_name = "司教領"
                 else:
-                    regime_name = "宗教共和制"
+                    regime_name = "宗教連邦"
 
         # 市場軸に基づいて接頭辞を付ける
         if capital <= 1:
