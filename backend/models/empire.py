@@ -18,12 +18,30 @@ class Empire:
             "gold": 1000,  # 資金は帝国全体で共有
         }
 
-        # 政治体制（-2～2の5段階スライダー値）
+        # 政治体制（0～5の6段階スライダー値）
         self.ideology = {
-            "capital": 0,         # 資本：-2=集産、0=中道、2=市場
-            "power": 0,           # 権力：-2=集権、0=中道、2=分散
-            "legitimacy": 0,      # 正統性：-2=カリスマ、0=中道、2=超越的
-            "power_subject": 0    # 権力主体：-2=議会、0=中道、2=個人
+            "capital": 0,        # 市場：0=放任、2-3=中道、5=介入（政策数で自動計算）
+            "power": 0,          # 権力：0=分散、2-3=中道、5=集権
+            "legitimacy": 0,     # 正統性：0=カリスマ、2-3=中道、5=超越的
+            "power_subject": 0   # 権力主体：0=個人、2-3=中道、5=議会
+        }
+
+        # 市場政策（採用されている政策の数がcapital値になる）
+        self.market_policies = {
+            "coin_minting": False,      # 貨幣の鋳造
+            "monopoly_system": False,   # 専売制
+            "price_control": False,     # 価格統制
+            "capital_control": False,   # 資本移動の制限
+            "welfare_policy": False     # 福祉政策
+        }
+
+        # 権力政策（採用されている政策の数がpower値になる）
+        self.power_policies = {
+            "hereditary_ban": False,        # 世襲の禁止
+            "tax_deprivation": False,       # 徴税権のはく奪
+            "disband_local_army": False,    # 現地の軍隊を解散
+            "appointment_authority": False, # 任免権
+            "recruitment_exam": False       # 登用試験
         }
 
         # 都市管理
@@ -93,93 +111,116 @@ class Empire:
         self.add_event(f"=== ターン {self.turn} 開始 ===")
 
     def update_ideology(self, axis: str, value: int) -> bool:
-        """政治体制を更新"""
-        if axis in self.ideology and -2 <= value <= 2:
+        """政治体制を更新（capital・powerは政策で自動計算されるため更新不可）"""
+        if axis in ["capital", "power"]:
+            return False  # capital・powerは政策で自動計算
+        if axis in self.ideology and 0 <= value <= 5:
             self.ideology[axis] = value
             return True
         return False
 
+    def toggle_market_policy(self, policy: str) -> bool:
+        """市場政策を切り替え"""
+        if policy in self.market_policies:
+            self.market_policies[policy] = not self.market_policies[policy]
+            # capital値を再計算
+            self.ideology["capital"] = sum(1 for p in self.market_policies.values() if p)
+            return True
+        return False
+
+    def toggle_power_policy(self, policy: str) -> bool:
+        """権力政策を切り替え"""
+        if policy in self.power_policies:
+            self.power_policies[policy] = not self.power_policies[policy]
+            # power値を再計算
+            self.ideology["power"] = sum(1 for p in self.power_policies.values() if p)
+            return True
+        return False
+
     def classify_regime(self) -> str:
-        """イデオロギー値に基づいて政治体制を分類（-2～2の5段階）"""
+        """イデオロギー値に基づいて政治体制を分類（0～5の6段階）"""
         capital = self.ideology["capital"]
         power = self.ideology["power"]
         legitimacy = self.ideology["legitimacy"]
         power_subject = self.ideology["power_subject"]
 
-        # 神権政治 (transcendent legitimacy が高い: 1以上)
-        if legitimacy >= 1:
-            if power <= -1:
-                return "神権君主制" if power_subject >= 1 else "神聖帝国"
-            elif power >= 1:
-                return "宗教自治連邦"
-            else:
-                return "立憲神権制" if power_subject <= 0 else "宗教君主制"
-
-        # カリスマ的指導者体制 (charismatic legitimacy が高い: -1以下)
-        if legitimacy <= -1:
-            if power_subject >= 1:
-                # 個人支配が強い
-                if power <= -1:
-                    return "独裁制" if capital >= 0 else "独裁社会主義"
+        # 封建制（権力 0-1）の場合、具体的な政体名を使用
+        if power <= 1:
+            if legitimacy <= 1:  # 個人
+                if power_subject <= 1:
+                    regime_name = "封建君主制"
+                elif power_subject <= 3:
+                    regime_name = "諸侯連合"
                 else:
-                    return "カリスマ民主制"
-            else:
-                # 議会的
-                if power <= -1:
-                    return "全体主義" if capital <= -1 else "権威主義"
+                    regime_name = "都市同盟"
+            elif legitimacy <= 3:  # 法律
+                if power_subject <= 1:
+                    regime_name = "契約君主制"
+                elif power_subject <= 3:
+                    regime_name = "身分制議会"
                 else:
-                    return "革命評議会"
-
-        # 以下、中庸な正統性の場合
-        # 極端な中央集権
-        if power == -2:
-            if power_subject >= 1:
-                return "専制君主制" if capital >= 0 else "人民独裁"
-            else:
-                return "中央集権国家" if capital >= 0 else "中央計画経済"
-
-        # 極端な分権
-        if power == 2:
-            if capital <= -1:
-                return "アナルコ・サンディカリズム"
-            elif capital >= 1:
-                return "アナルコ・キャピタリズム"
-            else:
-                return "自治都市連合"
-
-        # 中庸な権力分散度
-        if capital <= -1:
-            # 集産主義
-            if power_subject >= 1:
-                return "社会主義独裁"
-            else:
-                return "評議会社会主義"
-        elif capital >= 1:
-            # 市場経済
-            if power >= 1:
-                # 分権的
-                if power_subject <= 0:
-                    return "議会民主制"
+                    regime_name = "自由都市連合"
+            else:  # 超越
+                if power_subject <= 1:
+                    regime_name = "神授王権"
+                elif power_subject <= 3:
+                    regime_name = "聖職貴族制"
                 else:
-                    return "大統領制民主主義"
-            else:
-                # 中央集権的
-                if power_subject >= 1:
-                    return "権威主義資本主義"
+                    regime_name = "聖都連合"
+        # 郡県制（権力 4-5）の場合、具体的な政体名を使用
+        elif power >= 4:
+            if legitimacy <= 1:  # 個人
+                if power_subject <= 1:
+                    regime_name = "絶対王政"
+                elif power_subject <= 3:
+                    regime_name = "寡頭政（オリガルキ）"
                 else:
-                    return "官僚資本主義"
+                    regime_name = "民主共和国"
+            elif legitimacy <= 3:  # 法律
+                if power_subject <= 1:
+                    regime_name = "法治専制"
+                elif power_subject <= 3:
+                    regime_name = "元老院制"
+                else:
+                    regime_name = "立憲民主制"
+            else:  # 超越
+                if power_subject <= 1:
+                    regime_name = "神権政治（皇帝教皇主義）"
+                elif power_subject <= 3:
+                    regime_name = "神官貴族制"
+                else:
+                    regime_name = "神聖共和国"
         else:
-            # 混合経済
-            if power >= 1:
-                if power_subject <= 0:
-                    return "議会制民主主義"
+            # 総督制（権力 2-3）の場合、具体的な政体名を使用
+            if legitimacy <= 1:  # 個人
+                if power_subject <= 1:
+                    regime_name = "軍管区制"
+                elif power_subject <= 3:
+                    regime_name = "総督貴族制"
                 else:
-                    return "共和制"
-            else:
-                if power_subject >= 1:
-                    return "立憲君主制"
+                    regime_name = "総督共和制"
+            elif legitimacy <= 3:  # 法律
+                if power_subject <= 1:
+                    regime_name = "帝国総督制"
+                elif power_subject <= 3:
+                    regime_name = "連邦制"
                 else:
-                    return "議会制国家"
+                    regime_name = "自治共和制"
+            else:  # 超越
+                if power_subject <= 1:
+                    regime_name = "教皇領"
+                elif power_subject <= 3:
+                    regime_name = "司教領"
+                else:
+                    regime_name = "宗教連邦"
+
+        # 市場軸に基づいて接頭辞を付ける
+        if capital <= 1:
+            return f"自由貿易{regime_name}"
+        elif capital >= 4:
+            return f"国家統制{regime_name}"
+        else:
+            return regime_name
 
     def to_dict(self) -> Dict:
         """辞書形式に変換"""
@@ -187,6 +228,8 @@ class Empire:
             "turn": self.turn,
             "resources": self.resources,  # 帝国レベルのリソース
             "ideology": self.ideology,    # 政治体制
+            "market_policies": self.market_policies,  # 市場政策
+            "power_policies": self.power_policies,    # 権力政策
             "regime": self.classify_regime(),  # 体制分類
             "current_city_id": self.current_city_id,
             "cities": {city_id: city.to_dict() for city_id, city in self.cities.items()},

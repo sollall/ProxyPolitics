@@ -42,22 +42,42 @@
 
                     <div class="ideology-slider">
                         <div class="ideology-labels">
-                            <span class="ideology-label-left">集産</span>
-                            <span class="ideology-label-center">資本</span>
-                            <span class="ideology-label-right">市場</span>
+                            <span class="ideology-label-left">放任</span>
+                            <span class="ideology-label-center">市場（政策で自動計算）</span>
+                            <span class="ideology-label-right">介入</span>
                         </div>
-                        <input type="range" id="ideology-capital" class="slider" min="-2" max="2" value="0" step="1" oninput="updateIdeology('capital', this.value)">
+                        <input type="range" id="ideology-capital" class="slider" min="0" max="5" value="0" step="1" disabled>
                         <div class="ideology-value" id="capital-value">0</div>
+                    </div>
+
+                    <!-- 市場政策 -->
+                    <div class="market-policies">
+                        <h4>📊 市場政策（採用数が市場値になります）</h4>
+                        <label><input type="checkbox" id="policy-coin_minting" onchange="toggleMarketPolicy('coin_minting')"> 貨幣の鋳造</label>
+                        <label><input type="checkbox" id="policy-monopoly_system" onchange="toggleMarketPolicy('monopoly_system')"> 専売制</label>
+                        <label><input type="checkbox" id="policy-price_control" onchange="toggleMarketPolicy('price_control')"> 価格統制</label>
+                        <label><input type="checkbox" id="policy-capital_control" onchange="toggleMarketPolicy('capital_control')"> 資本移動の制限</label>
+                        <label><input type="checkbox" id="policy-welfare_policy" onchange="toggleMarketPolicy('welfare_policy')"> 福祉政策</label>
                     </div>
 
                     <div class="ideology-slider">
                         <div class="ideology-labels">
-                            <span class="ideology-label-left">集権</span>
-                            <span class="ideology-label-center">権力</span>
-                            <span class="ideology-label-right">分散</span>
+                            <span class="ideology-label-left">分散</span>
+                            <span class="ideology-label-center">権力（政策で自動計算）</span>
+                            <span class="ideology-label-right">集権</span>
                         </div>
-                        <input type="range" id="ideology-power" class="slider" min="-2" max="2" value="0" step="1" oninput="updateIdeology('power', this.value)">
+                        <input type="range" id="ideology-power" class="slider" min="0" max="5" value="0" step="1" disabled>
                         <div class="ideology-value" id="power-value">0</div>
+                    </div>
+
+                    <!-- 権力政策 -->
+                    <div class="power-policies">
+                        <h4>⚔️ 権力政策（採用数が権力値になります）</h4>
+                        <label><input type="checkbox" id="power-policy-hereditary_ban" onchange="togglePowerPolicy('hereditary_ban')"> 世襲の禁止</label>
+                        <label><input type="checkbox" id="power-policy-tax_deprivation" onchange="togglePowerPolicy('tax_deprivation')"> 徴税権のはく奪</label>
+                        <label><input type="checkbox" id="power-policy-disband_local_army" onchange="togglePowerPolicy('disband_local_army')"> 現地の軍隊を解散</label>
+                        <label><input type="checkbox" id="power-policy-appointment_authority" onchange="togglePowerPolicy('appointment_authority')"> 任免権</label>
+                        <label><input type="checkbox" id="power-policy-recruitment_exam" onchange="togglePowerPolicy('recruitment_exam')"> 登用試験</label>
                     </div>
 
                     <div class="ideology-slider">
@@ -66,24 +86,24 @@
                             <span class="ideology-label-center">正統性</span>
                             <span class="ideology-label-right">超越的</span>
                         </div>
-                        <input type="range" id="ideology-legitimacy" class="slider" min="-2" max="2" value="0" step="1" oninput="updateIdeology('legitimacy', this.value)">
+                        <input type="range" id="ideology-legitimacy" class="slider" min="0" max="5" value="0" step="1" oninput="updateIdeology('legitimacy', this.value)">
                         <div class="ideology-value" id="legitimacy-value">0</div>
                     </div>
 
                     <div class="ideology-slider">
                         <div class="ideology-labels">
-                            <span class="ideology-label-left">議会</span>
+                            <span class="ideology-label-left">個人</span>
                             <span class="ideology-label-center">権力主体</span>
-                            <span class="ideology-label-right">個人</span>
+                            <span class="ideology-label-right">議会</span>
                         </div>
-                        <input type="range" id="ideology-power-subject" class="slider" min="-2" max="2" value="0" step="1" oninput="updateIdeology('power_subject', this.value)">
+                        <input type="range" id="ideology-power-subject" class="slider" min="0" max="5" value="0" step="1" oninput="updateIdeology('power_subject', this.value)">
                         <div class="ideology-value" id="power-subject-value">0</div>
                     </div>
 
                     <!-- 体制分類 -->
                     <div class="regime-display">
                         <div class="regime-label">現在の体制:</div>
-                        <div class="regime-name" id="regime-name">議会制国家</div>
+                        <div class="regime-name" id="regime-name">封建制</div>
                     </div>
                 </div>
 

@@ -115,6 +115,26 @@ function updateEmpireView() {
         }
     }
 
+    // 市場政策チェックボックス
+    if (gameState.market_policies) {
+        Object.entries(gameState.market_policies).forEach(([policy, isActive]) => {
+            const checkbox = document.getElementById(`policy-${policy}`);
+            if (checkbox) {
+                checkbox.checked = isActive;
+            }
+        });
+    }
+
+    // 権力政策チェックボックス
+    if (gameState.power_policies) {
+        Object.entries(gameState.power_policies).forEach(([policy, isActive]) => {
+            const checkbox = document.getElementById(`power-policy-${policy}`);
+            if (checkbox) {
+                checkbox.checked = isActive;
+            }
+        });
+    }
+
     // 都市リスト
     updateCitiesList();
 
@@ -441,13 +461,43 @@ function updateIdeology(axis, value) {
     .then(data => {
         if (data.success) {
             gameState = data.state;
-            // 体制分類を更新
-            if (gameState.regime) {
-                const regimeNameEl = document.getElementById('regime-name');
-                if (regimeNameEl) {
-                    regimeNameEl.textContent = gameState.regime;
-                }
-            }
+            updateEmpireView();
+        }
+    });
+}
+
+function toggleMarketPolicy(policy) {
+    // サーバーに送信
+    fetch('/api/market_policy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            policy: policy
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+        }
+    });
+}
+
+function togglePowerPolicy(policy) {
+    // サーバーに送信
+    fetch('/api/power_policy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            policy: policy
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
         }
     });
 }

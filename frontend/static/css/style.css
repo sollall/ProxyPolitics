@@ -837,3 +837,63 @@ header h1 {
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     letter-spacing: 0.5px;
 }
+
+.market-policies {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.market-policies h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.market-policies label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.market-policies label:hover {
+    background-color: #e9ecef;
+}
+
+.market-policies input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
+
+.power-policies {
+    margin: 15px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.power-policies h4 {
+    margin: 0 0 10px 0;
+    color: #333;
+}
+
+.power-policies label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.power-policies label:hover {
+    background-color: #e9ecef;
+}
+
+.power-policies input[type="checkbox"] {
+    margin-right: 8px;
+    cursor: pointer;
+}
