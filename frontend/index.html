@@ -259,6 +259,29 @@
         </div>
     </div>
 
+    <!-- リソース配分モーダル -->
+    <div id="transfer-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeTransferModal()">&times;</span>
+            <h2>リソース配分</h2>
+            <p id="transfer-city-name"></p>
+            <div class="transfer-inputs">
+                <div class="transfer-input-group">
+                    <label>💰 資金:</label>
+                    <input type="number" id="transfer-gold" min="0" step="100" value="0" class="number-input">
+                </div>
+                <div class="transfer-input-group">
+                    <label>⚔️ 軍隊:</label>
+                    <input type="number" id="transfer-military" min="0" step="100" value="0" class="number-input">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="executeTransfer()">配分する</button>
+                <button class="btn btn-secondary" onclick="closeTransferModal()">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 総督任命モーダル -->
     <div id="governor-modal" class="modal">
         <div class="modal-content">

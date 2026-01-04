@@ -622,14 +622,16 @@ header h1 {
 
 .city-card-actions {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     margin-top: 10px;
+    flex-wrap: wrap;
 }
 
 .city-card-actions .btn {
     flex: 1;
-    font-size: 0.85em;
-    padding: 6px 12px;
+    font-size: 0.8em;
+    padding: 6px 8px;
+    min-width: 60px;
 }
 
 /* NPC一覧 */
@@ -731,6 +733,36 @@ header h1 {
     gap: 10px;
     justify-content: flex-end;
     margin-top: 15px;
+}
+
+/* リソース配分モーダル */
+.transfer-inputs {
+    margin: 20px 0;
+}
+
+.transfer-input-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.transfer-input-group label {
+    font-weight: bold;
+    min-width: 100px;
+}
+
+.number-input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e9ecef;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.number-input:focus {
+    outline: none;
+    border-color: #667eea;
 }
 
 @media (max-width: 768px) {

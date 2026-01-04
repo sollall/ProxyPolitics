@@ -328,6 +328,52 @@ def toggle_power_policy():
         }), 400
 
 
+@app.route('/api/transfer_resources', methods=['POST'])
+def transfer_resources():
+    """帝国から都市へリソースを転送"""
+    data = request.json
+    city_id = data.get('city_id')
+    gold_amount = data.get('gold', 0)
+    military_amount = data.get('military', 0)
+
+    city = game_state.get_city(city_id)
+    if not city:
+        return jsonify({
+            "success": False,
+            "message": "無効な都市IDです"
+        }), 400
+
+    # 帝国のリソースが足りるか確認
+    if game_state.resources.get('gold', 0) < gold_amount:
+        return jsonify({
+            "success": False,
+            "message": f"帝国の資金が不足しています（必要: {gold_amount}、所持: {game_state.resources['gold']}）"
+        }), 400
+
+    if game_state.resources.get('military', 0) < military_amount:
+        return jsonify({
+            "success": False,
+            "message": f"帝国の軍隊が不足しています（必要: {military_amount}、所持: {game_state.resources['military']}）"
+        }), 400
+
+    # リソースを転送
+    if gold_amount > 0:
+        game_state.resources['gold'] -= gold_amount
+        city.resources['gold'] = city.resources.get('gold', 0) + gold_amount
+        game_state.add_event(f"[{city.name}] 帝国から資金{gold_amount}を配分しました")
+
+    if military_amount > 0:
+        game_state.resources['military'] -= military_amount
+        city.resources['military_power'] = city.resources.get('military_power', 0) + military_amount
+        game_state.add_event(f"[{city.name}] 帝国から軍隊{military_amount}を配分しました")
+
+    return jsonify({
+        "success": True,
+        "message": f"{city.name}にリソースを配分しました",
+        "state": game_state.to_dict()
+    })
+
+
 @app.route('/api/add_empire_resource', methods=['POST'])
 def add_empire_resource():
     """帝国リソースを追加（チート用）"""

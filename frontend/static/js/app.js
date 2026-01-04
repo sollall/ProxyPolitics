@@ -172,8 +172,9 @@ function updateCitiesList() {
                 <div class="city-governor">🏛️ 総督: ${governorName}</div>
             </div>
             <div class="city-card-actions" onclick="event.stopPropagation()">
-                <button class="btn btn-small" onclick="showGovernorModal('${cityId}')">総督任命</button>
-                <button class="btn btn-small" onclick="switchToCityView('${cityId}')">都市を開く</button>
+                <button class="btn btn-small" onclick="showTransferModal('${cityId}')">配分</button>
+                <button class="btn btn-small" onclick="showGovernorModal('${cityId}')">総督</button>
+                <button class="btn btn-small" onclick="switchToCityView('${cityId}')">開く</button>
             </div>
         `;
 
@@ -403,6 +404,56 @@ function nextTurn() {
                     select.value = '';
                 }
             });
+        }
+    });
+}
+
+// ==================== リソース配分 ====================
+
+let currentCityForTransfer = '';
+
+function showTransferModal(cityId) {
+    currentCityForTransfer = cityId;
+    const city = gameState.cities[cityId];
+    const modal = document.getElementById('transfer-modal');
+
+    document.getElementById('transfer-city-name').textContent = `${city.name}へ配分`;
+    document.getElementById('transfer-gold').value = 0;
+    document.getElementById('transfer-military').value = 0;
+
+    modal.style.display = 'block';
+}
+
+function closeTransferModal() {
+    document.getElementById('transfer-modal').style.display = 'none';
+}
+
+function executeTransfer() {
+    const goldAmount = parseInt(document.getElementById('transfer-gold').value) || 0;
+    const militaryAmount = parseInt(document.getElementById('transfer-military').value) || 0;
+
+    if (goldAmount === 0 && militaryAmount === 0) {
+        alert('配分する量を入力してください');
+        return;
+    }
+
+    fetch('/api/transfer_resources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            city_id: currentCityForTransfer,
+            gold: goldAmount,
+            military: militaryAmount
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+            closeTransferModal();
+        } else {
+            alert(data.message);
         }
     });
 }
