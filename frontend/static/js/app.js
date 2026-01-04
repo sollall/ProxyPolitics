@@ -166,9 +166,15 @@ function updateCitiesList() {
         cityCard.innerHTML = `
             <h4>${city.name}</h4>
             <div class="city-card-info">
-                <div>💰 資金: ${city.resources.gold || 0}</div>
+                <div class="resource-with-button">
+                    <span>💰 資金: ${city.resources.gold || 0}</span>
+                    <button class="btn-quick-add" onclick="quickTransfer('${cityId}', 'gold', 500)">+</button>
+                </div>
                 <div>👥 人口: ${city.resources.population}</div>
-                <div>⚔️ 軍事力: ${city.resources.military_power}</div>
+                <div class="resource-with-button">
+                    <span>⚔️ 軍事力: ${city.resources.military_power}</span>
+                    <button class="btn-quick-add" onclick="quickTransfer('${cityId}', 'military', 100)">+</button>
+                </div>
                 <div class="city-governor">🏛️ 総督: ${governorName}</div>
             </div>
             <div class="city-card-actions" onclick="event.stopPropagation()">
@@ -411,6 +417,37 @@ function nextTurn() {
 // ==================== リソース配分 ====================
 
 let currentCityForTransfer = '';
+
+function quickTransfer(cityId, resourceType, amount) {
+    event.stopPropagation();
+
+    const transferData = {
+        city_id: cityId,
+        gold: 0,
+        military: 0
+    };
+
+    if (resourceType === 'gold') {
+        transferData.gold = amount;
+    } else if (resourceType === 'military') {
+        transferData.military = amount;
+    }
+
+    fetch('/api/transfer_resources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transferData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+        } else {
+            alert(data.message);
+        }
+    });
+}
 
 function showTransferModal(cityId) {
     currentCityForTransfer = cityId;
