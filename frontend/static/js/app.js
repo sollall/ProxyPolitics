@@ -88,6 +88,7 @@ function updateEmpireView() {
 
     // 帝国リソース
     document.getElementById('empire-gold').textContent = gameState.resources.gold;
+    document.getElementById('empire-military').textContent = gameState.resources.military || 0;
 
     // 政治体制スライダー
     if (gameState.ideology) {
@@ -165,9 +166,9 @@ function updateCitiesList() {
         cityCard.innerHTML = `
             <h4>${city.name}</h4>
             <div class="city-card-info">
+                <div>💰 資金: ${city.resources.gold || 0}</div>
                 <div>👥 人口: ${city.resources.population}</div>
                 <div>⚔️ 軍事力: ${city.resources.military_power}</div>
-                <div>🤝 外交影響力: ${city.resources.diplomatic_influence}</div>
                 <div class="city-governor">🏛️ 総督: ${governorName}</div>
             </div>
             <div class="city-card-actions" onclick="event.stopPropagation()">
@@ -299,10 +300,9 @@ function updateCityView() {
     document.getElementById('city-turn').textContent = gameState.turn;
 
     // リソース
-    document.getElementById('city-gold').textContent = gameState.resources.gold;
+    document.getElementById('city-gold').textContent = currentCity.resources.gold || 0;
     document.getElementById('resource-population').textContent = currentCity.resources.population;
     document.getElementById('resource-military').textContent = currentCity.resources.military_power;
-    document.getElementById('resource-diplomacy').textContent = currentCity.resources.diplomatic_influence;
 
     // 各分野
     ['economy', 'diplomacy', 'military'].forEach(sector => {
@@ -575,6 +575,26 @@ function recruitNPC() {
             closeRecruitModal();
         } else {
             alert(data.message);
+        }
+    });
+}
+
+// ==================== 帝国リソース追加 ====================
+
+function addEmpireResource(resourceType) {
+    fetch('/api/add_empire_resource', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            resource_type: resourceType,
+            amount: 1000
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
         }
     });
 }

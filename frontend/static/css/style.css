@@ -149,6 +149,18 @@ header h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.btn-add-resource {
+    background: #28a745;
+    color: white;
+    margin-left: auto;
+}
+
+.btn-add-resource:hover {
+    background: #218838;
 }
 
 .resource-label {

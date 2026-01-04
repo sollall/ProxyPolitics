@@ -328,6 +328,29 @@ def toggle_power_policy():
         }), 400
 
 
+@app.route('/api/add_empire_resource', methods=['POST'])
+def add_empire_resource():
+    """帝国リソースを追加（チート用）"""
+    data = request.json
+    resource_type = data.get('resource_type')  # 'gold' or 'military'
+    amount = data.get('amount', 1000)
+
+    if resource_type not in ['gold', 'military']:
+        return jsonify({
+            "success": False,
+            "message": "無効なリソースタイプです"
+        }), 400
+
+    game_state.resources[resource_type] += amount
+    game_state.add_event(f"帝国の{resource_type}が{amount}増加しました")
+
+    return jsonify({
+        "success": True,
+        "message": f"{resource_type}を{amount}追加しました",
+        "state": game_state.to_dict()
+    })
+
+
 @app.route('/api/reset', methods=['POST'])
 def reset_game():
     """ゲームをリセット"""

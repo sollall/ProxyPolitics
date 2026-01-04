@@ -31,9 +31,17 @@
                 <!-- 帝国リソース -->
                 <div class="resources">
                     <h3>帝国リソース</h3>
-                    <div class="resource-item-large">
-                        <span class="resource-label">💰 資金:</span>
-                        <span id="empire-gold" class="resource-value">10000</span>
+                    <div class="resource-grid">
+                        <div class="resource-item">
+                            <span class="resource-label">💰 資金:</span>
+                            <span id="empire-gold" class="resource-value">10000</span>
+                            <button class="btn btn-small btn-add-resource" onclick="addEmpireResource('gold')">+1000</button>
+                        </div>
+                        <div class="resource-item">
+                            <span class="resource-label">⚔️ 軍隊:</span>
+                            <span id="empire-military" class="resource-value">1000</span>
+                            <button class="btn btn-small btn-add-resource" onclick="addEmpireResource('military')">+1000</button>
+                        </div>
                     </div>
                 </div>
 
@@ -172,8 +180,7 @@
                     <div class="resource-grid">
                         <div class="resource-item">
                             <span class="resource-label">💰 資金:</span>
-                            <span id="city-gold" class="resource-value">10000</span>
-                            <span class="resource-note">（帝国共有）</span>
+                            <span id="city-gold" class="resource-value">5000</span>
                         </div>
                         <div class="resource-item">
                             <span class="resource-label">👥 人口:</span>
@@ -182,10 +189,6 @@
                         <div class="resource-item">
                             <span class="resource-label">⚔️ 軍事力:</span>
                             <span id="resource-military" class="resource-value">500</span>
-                        </div>
-                        <div class="resource-item">
-                            <span class="resource-label">🤝 外交影響力:</span>
-                            <span id="resource-diplomacy" class="resource-value">50</span>
                         </div>
                     </div>
                 </div>

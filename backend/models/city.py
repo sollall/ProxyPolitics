@@ -16,9 +16,9 @@ class City:
 
         # 都市ごとのリソース
         self.resources = {
+            "gold": 5000,  # 都市の資金
             "population": 10000,
-            "military_power": 500,
-            "diplomatic_influence": 50
+            "military_power": 500
         }
 
         # 各分野の状態
