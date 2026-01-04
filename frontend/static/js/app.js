@@ -15,6 +15,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function setupEventListeners() {
     // 帝国ビューのイベント
+    document.getElementById('empire-next-turn-btn').addEventListener('click', empireNextTurn);
     document.getElementById('empire-reset-btn').addEventListener('click', resetGame);
 
     // 都市ビューのイベント
@@ -356,6 +357,22 @@ function updateCityEventLog() {
 }
 
 // ==================== ターン進行 ====================
+
+function empireNextTurn() {
+    // 帝国ビューから次のターンへ進む（全都市のNPCが自動実行）
+    fetch('/api/next_turn', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ player_commands: {} })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+        }
+    });
+}
 
 function nextTurn() {
     const playerCommands = {};
