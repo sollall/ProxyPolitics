@@ -577,7 +577,6 @@ header h1 {
     border-radius: 10px;
     padding: 20px;
     color: white;
-    cursor: pointer;
     transition: all 0.3s;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -595,10 +594,30 @@ header h1 {
 .city-card-info {
     font-size: 0.9em;
     opacity: 0.9;
+    margin-bottom: 12px;
 }
 
 .city-card-info div {
     margin: 5px 0;
+}
+
+.city-governor {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.3);
+    font-weight: bold;
+}
+
+.city-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.city-card-actions .btn {
+    flex: 1;
+    font-size: 0.85em;
+    padding: 6px 12px;
 }
 
 /* NPC一覧 */

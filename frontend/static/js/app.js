@@ -155,7 +155,11 @@ function updateCitiesList() {
     for (const [cityId, city] of Object.entries(gameState.cities)) {
         const cityCard = document.createElement('div');
         cityCard.className = 'city-card';
-        cityCard.onclick = () => switchToCityView(cityId);
+
+        // 総督情報
+        const governorName = city.governor
+            ? allNPCs.find(npc => npc.id === city.governor)?.name || '不明'
+            : 'なし';
 
         cityCard.innerHTML = `
             <h4>${city.name}</h4>
@@ -163,6 +167,11 @@ function updateCitiesList() {
                 <div>👥 人口: ${city.resources.population}</div>
                 <div>⚔️ 軍事力: ${city.resources.military_power}</div>
                 <div>🤝 外交影響力: ${city.resources.diplomatic_influence}</div>
+                <div class="city-governor">🏛️ 総督: ${governorName}</div>
+            </div>
+            <div class="city-card-actions" onclick="event.stopPropagation()">
+                <button class="btn btn-small" onclick="showGovernorModal('${cityId}')">総督任命</button>
+                <button class="btn btn-small" onclick="switchToCityView('${cityId}')">都市を開く</button>
             </div>
         `;
 
@@ -377,6 +386,64 @@ function nextTurn() {
                     select.value = '';
                 }
             });
+        }
+    });
+}
+
+// ==================== 総督任命 ====================
+
+let currentCityForGovernor = '';
+
+function showGovernorModal(cityId) {
+    currentCityForGovernor = cityId;
+    const modal = document.getElementById('governor-modal');
+    const npcList = document.getElementById('governor-npc-list');
+    npcList.innerHTML = '';
+
+    const city = gameState.cities[cityId];
+
+    // 総督解任ボタン
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-secondary';
+    removeBtn.textContent = '総督を解任';
+    removeBtn.onclick = () => setGovernor(null);
+    npcList.appendChild(removeBtn);
+
+    // NPC一覧
+    allNPCs.forEach(npc => {
+        const npcBtn = document.createElement('button');
+        npcBtn.className = 'npc-option-btn';
+        npcBtn.textContent = `${npc.name} (${getSpecialtyName(npc.specialty)})`;
+        if (city.governor === npc.id) {
+            npcBtn.style.background = '#667eea';
+            npcBtn.style.color = 'white';
+        }
+        npcBtn.onclick = () => setGovernor(npc.id);
+        npcList.appendChild(npcBtn);
+    });
+
+    modal.style.display = 'block';
+}
+
+function closeGovernorModal() {
+    document.getElementById('governor-modal').style.display = 'none';
+}
+
+function setGovernor(npcId) {
+    fetch('/api/set_governor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            city_id: currentCityForGovernor,
+            npc_id: npcId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            gameState = data.state;
+            updateEmpireView();
+            closeGovernorModal();
         }
     });
 }

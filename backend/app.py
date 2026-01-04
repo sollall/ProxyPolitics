@@ -104,6 +104,38 @@ def add_city():
     })
 
 
+@app.route('/api/set_governor', methods=['POST'])
+def set_governor():
+    """都市に総督を設定"""
+    data = request.json
+    city_id = data.get('city_id')
+    npc_id = data.get('npc_id')  # Noneの場合は総督解除
+
+    city = game_state.get_city(city_id)
+    if not city:
+        return jsonify({
+            "success": False,
+            "message": "無効な都市IDです"
+        }), 400
+
+    city.set_governor(npc_id)
+
+    if npc_id:
+        npc = game_state.npc_manager.get_npc(npc_id)
+        npc_name = npc.name if npc else "不明"
+        game_state.add_event(f"[{city.name}] {npc_name}を総督に任命しました")
+        message = f"{city.name}の総督に{npc_name}を任命しました"
+    else:
+        game_state.add_event(f"[{city.name}] 総督を解任しました")
+        message = f"{city.name}の総督を解任しました"
+
+    return jsonify({
+        "success": True,
+        "message": message,
+        "state": game_state.to_dict()
+    })
+
+
 @app.route('/api/delegate', methods=['POST'])
 def delegate_sector():
     """分野にNPCを委任"""
